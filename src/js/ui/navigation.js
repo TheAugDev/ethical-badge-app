@@ -4,7 +4,7 @@ export function initNavigation() {
   console.log('Navigation initialized');
 }
 // src/js/ui/navigation.js
-import { getAuth, signOut } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
+import { getAuth, signOut } from 'firebase/auth';
 
 const navItems = document.querySelectorAll('.nav-item');
 const sections = document.querySelectorAll('.content-section');

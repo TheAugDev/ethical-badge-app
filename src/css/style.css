@@ -1,7 +1,6 @@
-/* Tailwind CSS Directives (if you were using a PostCSS build step) */
-/* @tailwind base; */
-/* @tailwind components; */
-/* @tailwind utilities; */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* Custom Styles (Keep this minimal, prefer Tailwind classes) */
 body { 

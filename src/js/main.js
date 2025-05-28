@@ -1,5 +1,8 @@
 // src/js/main.js
 
+// Import Tailwind CSS entry file
+import '../css/style.css';
+
 // Firebase SDK Core (auth and db are initialized in firebaseConfig.js)
 import { auth, db } from './config/firebaseConfig.js';
 
@@ -80,10 +83,10 @@ document.addEventListener('DOMContentLoaded', () => {
   initializeAuth(
     auth,
     db,
-    async (user) => {
+    (user) => {
       // onLogin callback from authService
-      console.log('Main.js: User logged in, loading app data...');
-      await loadInitialAppData(); // Load data and initialize UI for the logged-in user
+      console.log('Main.js: User logged in, authService will handle initial data load trigger.');
+      // loadInitialAppData() will now be triggered by onAppReady from authService
     },
     () => {
       // onLogout callback from authService
@@ -91,9 +94,9 @@ document.addEventListener('DOMContentLoaded', () => {
       // UI is handled by authService on logout (showing login overlay etc.)
     },
     async () => {
-      // onAppReady callback (called after initial auth check AND data load)
-      console.log('Main.js: App is ready after initial auth and data load.');
-      // This is a good place for any final setup that depends on everything being loaded.
+      // onAppReady callback (called after initial auth check AND data load from firestoreService)
+      console.log('Main.js: App is ready. Loading initial app data...');
+      await loadInitialAppData();
     }
   );
 

@@ -1,0 +1,1306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ethical Badge - Texas LEO Professional Development Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script type="module">
+        // Firebase SDK imports will be handled here in a real build environment
+    </script>
+
+    <!-- Application Structure Plan: Single-page SPA focused on officer users for an initial production version.
+        Backend: Firebase (Authentication for login, Firestore for user-specific data like manual training logs, preferences).
+        PII: Simulated login with name/email. Firebase Auth handles actual credential storage.
+        APIs: Gemini API for AI features. Texas Statutes will link to official sources.
+        Key Features:
+        1.  Home (Dashboard): TCOLE snapshot (from manually logged data), legal updates, AI Dilemma.
+        2.  TCOLE Hub: Manual input for completed training, saved to Firestore (conceptually).
+        3.  Ethical Core: Principles, Case Studies with AI.
+        4.  Texas Law & Policy: Summaries & links to statutes.capitol.texas.gov.
+        5.  Field Toolkit: Interactive & AI-Generated Scenarios, Field Guides.
+        6.  Officer Wellness & Resources.
+        UI/UX Goal: "Tactical Elegance" - professional, trustworthy, highly usable, with a "wow factor" from polish and smooth interactions.
+    -->
+    <!-- Visualization & Content Choices: (Previous choices remain, adapted for manual input and Firebase backend concept)
+        - TCOLE Hub: UI for users to manually mark TCOLE mandates as complete. Progress bar updates based on Firestore data (conceptually).
+        - Firebase Stubs: JS functions simulate calls to Firebase Auth and Firestore.
+        CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; background-color: #f1f5f9; /* slate-100 */ }
+        .chart-container {
+            position: relative; width: 100%; max-width: 280px; /* Slightly smaller for tighter fit */
+            margin-left: auto; margin-right: auto; height: 260px; max-height: 280px;
+        }
+        .content-section { scroll-margin-top: 100px; } /* Match header height */
+        
+        .card-expanded { max-height: 2000px; opacity: 1; padding-top: 1rem; padding-bottom: 1rem; visibility: visible; transition: all 0.5s ease-in-out; }
+        .card-collapsed { max-height: 0; opacity: 0; padding-top: 0; padding-bottom: 0; overflow: hidden; visibility: hidden; transition: all 0.4s ease-in-out;}
+        
+        .rotate-180 { transform: rotate(180deg); }
+        .modal { transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out; }
+        .modal-active { display: flex; opacity: 1; visibility: visible; }
+        .modal-inactive { display: none; opacity: 0; visibility: hidden; }
+        .scenario-feedback { margin-top: 1rem; padding: 1rem; border-radius: 0.5rem; border-width: 1px; }
+        .feedback-correct { background-color: #dcfce7; color: #166534; border-color: #86efac; } /* green-100, green-800 */
+        .feedback-incorrect { background-color: #fee2e2; color: #991b1b; border-color: #fca5a5; } 
+        .feedback-neutral { background-color: #e0e7ff; color: #3730a3; border-color: #a5b4fc; } 
+        
+        .nav-item { position: relative; }
+        .nav-link-active { 
+            background-color: #1d4ed8; /* blue-700 */ 
+            color: #ffffff !important;
+        }
+        .nav-link-active::after { 
+            content: ''; position: absolute; left: 0.75rem; right: 0.75rem; bottom: 0.125rem; /* Closer to text */
+            height: 3px; background-color: #f59e0b; /* amber-500 */ border-radius: 1.5px;
+        }
+        #mobileMenu .nav-link-active { background-color: #1d4ed8; color: #ffffff !important; }
+        #mobileMenu .nav-link-active::after { display: none; }
+
+
+        .modal-body-scrollable::-webkit-scrollbar { width: 6px; }
+        .modal-body-scrollable::-webkit-scrollbar-track { background: #e2e8f0; border-radius: 10px; }
+        .modal-body-scrollable::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 10px; }
+        .modal-body-scrollable::-webkit-scrollbar-thumb:hover { background: #64748b; }
+
+        .progress-bar-bg { background-color: #e5e7eb; border-radius: 0.375rem; overflow: hidden; height: 1.5rem;}
+        .progress-bar-fill { background-image: linear-gradient(to right, #3b82f6, #2563eb); height: 100%; transition: width 0.6s ease-in-out; text-align: center; color: white; font-size: 0.8rem; line-height: 1.5rem; font-weight: 500;}
+
+        .quick-link-btn { 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+            width: 100%; padding: 0.75rem 0.5rem; background-color: #3b82f6; color: white; 
+            font-size: 0.75rem; font-weight: 500; border-radius: 0.75rem; /* More rounded */
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .quick-link-btn:hover { background-color: #2563eb; transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.1); }
+        .quick-link-btn svg { margin-bottom: 0.25rem; }
+
+        .arrow-icon { transition: transform 0.3s ease-in-out; }
+
+        button:focus-visible, a:focus-visible, input:focus-visible {
+            outline: 2px solid #fbbf24; outline-offset: 2px;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.3); 
+        }
+        .expandable-card button:focus-visible { outline: none; }
+         .expandable-card button:focus-visible > div > span:first-child { 
+            text-decoration: underline; text-decoration-color: #fbbf24; 
+        }
+        header a:focus-visible, header button:focus-visible { 
+             outline-offset: -2px; box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #fbbf24; 
+        }
+
+        .loading-spinner {
+            border: 3px solid rgba(255,255,255,0.3); border-top: 3px solid #ffffff; 
+            border-radius: 50%; width: 20px; height: 20px;
+            animation: spin 0.8s linear infinite; margin-right: 8px; display: inline-block;
+        }
+        .loading-spinner-dark { /* For light backgrounds */
+             border: 3px solid rgba(0,0,0,0.1); border-top: 3px solid #3b82f6;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .ai-analysis-container {
+            margin-top: 1rem; padding: 1rem; background-color: #f8fafc; 
+            border: 1px solid #e2e8f0; border-radius: 0.5rem; /* md */
+        }
+        
+        #mobileMenu { 
+            max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
+            position: fixed; /* Changed from absolute */
+            top: 0; /* Will be adjusted by JS to be under header */
+            left: 0;
+            width: 100%;
+            background-color: #2563eb; /* Slightly darker blue for dropdown */
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        }
+        #mobileMenu.menu-open { max-height: calc(100vh - 72px); /* Full height minus header */ overflow-y: auto; }
+
+
+        #loginOverlay {
+            position: fixed; inset: 0; background-color: rgba(15, 23, 42, 0.8); /* slate-900 with opacity */
+            display: flex; align-items: center; justify-content: center; z-index: 200;
+            backdrop-filter: blur(4px);
+        }
+        #loginModal {
+            background-color: white; padding: 2.5rem; border-radius: 0.75rem; text-align: center;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+            width: 90%; max-width: 400px;
+        }
+        .form-message { font-size: 0.875rem; margin-top: 1rem; }
+        .form-message.success { color: #16a34a; } 
+        .form-message.error { color: #dc2626; } 
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased">
+
+    <div id="loginOverlay">
+        <div id="loginModal">
+            <div class="flex justify-center mb-6">
+                 <span class="text-6xl text-blue-600" aria-hidden="true">🛡️</span>
+            </div>
+            <h2 class="text-2xl font-bold mb-2 text-blue-700">Ethical Badge</h2>
+            <p class="text-sm text-slate-500 mb-6">Texas LEO Professional Hub</p>
+            
+            <input type="text" id="loginName" placeholder="Officer Name (e.g., Jane Doe)" class="w-full p-3 mb-3 border border-slate-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500">
+            <input type="email" id="loginEmail" placeholder="Email (e.g., jane.doe@agency.gov)" class="w-full p-3 mb-3 border border-slate-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500">
+            <input type="password" id="loginPassword" placeholder="Password (min. 6 characters)" class="w-full p-3 mb-4 border border-slate-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500">
+            <div class="flex space-x-3 justify-center">
+                <button id="loginButton" class="flex-1 px-5 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg">Login</button>
+                <button id="registerButton" class="flex-1 px-5 py-2.5 bg-green-600 text-white text-sm font-semibold rounded-lg hover:bg-green-700 transition-colors shadow-md hover:shadow-lg">Register</button>
+            </div>
+            <div id="authMessage" class="form-message mt-4"></div>
+        </div>
+    </div>
+
+    <header class="bg-blue-700 text-white shadow-xl fixed top-0 left-0 right-0 z-[150] hidden"> {/* Increased z-index */}
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-[72px] sm:h-[80px]"> {/* Slightly adjusted height */}
+                <a href="#home" class="flex items-center focus:outline-none rounded-md py-2 group">
+                    <span class="text-3xl sm:text-4xl mr-2 sm:mr-3 text-amber-400 group-hover:text-amber-300 transition-colors" aria-hidden="true">🛡️</span>
+                    <div>
+                        <h1 class="text-lg sm:text-xl lg:text-2xl font-bold tracking-tight leading-tight group-hover:text-blue-100 transition-colors">Ethical Badge</h1>
+                        <p class="text-xs sm:text-sm font-normal text-blue-200 hidden md:block leading-tight group-hover:text-blue-100 transition-colors">Texas LEO Professional Hub</p>
+                    </div>
+                </a>
+                <nav class="hidden lg:flex items-center space-x-1 xl:space-x-2">
+                    <a href="#home" class="nav-item text-blue-100 hover:bg-blue-600 hover:text-white active:bg-blue-800 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-150">Home</a>
+                    <a href="#tcole-hub" class="nav-item text-blue-100 hover:bg-blue-600 hover:text-white active:bg-blue-800 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-150">TCOLE Hub</a>
+                    <a href="#ethical-core" class="nav-item text-blue-100 hover:bg-blue-600 hover:text-white active:bg-blue-800 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-150">Ethical Core</a>
+                    <a href="#texas-law" class="nav-item text-blue-100 hover:bg-blue-600 hover:text-white active:bg-blue-800 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-150">TX Law</a>
+                    <a href="#field-toolkit" class="nav-item text-blue-100 hover:bg-blue-600 hover:text-white active:bg-blue-800 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-150">Toolkit</a>
+                    <a href="#officer-wellness" class="nav-item text-blue-100 hover:bg-blue-600 hover:text-white active:bg-blue-800 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-150">Wellness</a>
+                    <a href="#resources" class="nav-item text-blue-100 hover:bg-blue-600 hover:text-white active:bg-blue-800 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-150">Resources</a>
+                </nav>
+                 <div class="hidden lg:flex items-center ml-4">
+                    <span id="headerOfficerName" class="text-xs text-blue-200 mr-3 hidden"></span>
+                    <button id="logoutButton" class="px-3 py-1.5 bg-red-600 text-white text-xs font-semibold rounded-md hover:bg-red-700 transition-colors shadow-sm hover:shadow-md">Logout</button>
+                </div>
+                <button id="mobileMenuButton" class="lg:hidden inline-flex items-center justify-center p-2 rounded-md text-blue-100 hover:bg-blue-600 focus:outline-none" aria-expanded="false" aria-controls="mobileMenu" aria-label="Toggle mobile menu">
+                    <span class="sr-only">Open main menu</span>
+                    <span class="menu-icon-open block h-7 w-7" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-full h-full">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                        </svg>
+                    </span>
+                    <span class="menu-icon-close hidden h-7 w-7" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-full h-full">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </span>
+                </button>
+            </div>
+        </div>
+        <div id="mobileMenu" class="lg:hidden shadow-2xl w-full z-[140]"> {/* Adjusted z-index */}
+            <div class="px-3 pt-3 pb-4 space-y-2">
+                <a href="#home" class="nav-item text-blue-50 block hover:bg-blue-500 hover:text-white active:bg-blue-700 px-4 py-3 rounded-lg text-base font-semibold transition-colors duration-150 flex items-center"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 mr-3"><path fill-rule="evenodd" d="M9.293 2.293a1 1 0 0 1 1.414 0l7 7A1 1 0 0 1 17 10.707V17.5a1.5 1.5 0 0 1-1.5 1.5h-3.75a.75.75 0 0 1-.75-.75V14.5a.5.5 0 0 0-.5-.5h-2.5a.5.5 0 0 0-.5.5v3.75a.75.75 0 0 1-.75.75H3.5A1.5 1.5 0 0 1 2 17.5v-6.793a1 1 0 0 1 .293-.707l7-7Z" clip-rule="evenodd" /></svg>Home</a>
+                <a href="#tcole-hub" class="nav-item text-blue-50 block hover:bg-blue-500 hover:text-white active:bg-blue-700 px-4 py-3 rounded-lg text-base font-semibold transition-colors duration-150 flex items-center"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 mr-3"><path d="M11.983 1.904a3.003 3.003 0 0 0-4.002-.001L3.118 5.655A3 3 0 0 0 2 8.227V14.5A1.5 1.5 0 0 0 3.5 16h13a1.5 1.5 0 0 0 1.5-1.5V8.227a3 3 0 0 0-1.118-2.572L11.983 1.904ZM10 9a.75.75 0 0 1 .75.75v2.5a.75.75 0 0 1-1.5 0v-2.5A.75.75 0 0 1 10 9Z" /></svg>TCOLE Hub</a>
+                <a href="#ethical-core" class="nav-item text-blue-50 block hover:bg-blue-500 hover:text-white active:bg-blue-700 px-4 py-3 rounded-lg text-base font-semibold transition-colors duration-150 flex items-center"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 mr-3"><path fill-rule="evenodd" d="M10 2c-1.717 0-3.28.595-4.545 1.615S3 6.152 3 7.887v5.226c0 1.734.84 3.272 2.455 4.272S9.283 19 10 19c.717 0 2.28-.595 3.545-1.615S16 14.848 16 13.113V7.887c0-1.734-.84-3.272-2.455-4.272S10.717 2 10 2Zm0 1.5a4.123 4.123 0 0 0-1.262.285A5.46 5.46 0 0 0 6.04 5.194a5.46 5.46 0 0 0-1.395 2.693V10c0 .17.006.338.017.504l.08.975a.75.75 0 0 0 .653.646c.247.03.4.045.7.045h6.092c.3 0 .454-.015.7-.045a.75.75 0 0 0 .654-.646l.079-.975A4.122 4.122 0 0 0 14 10V7.887a5.46 5.46 0 0 0-1.395-2.693 5.46 5.46 0 0 0-2.702-1.395A4.123 4.123 0 0 0 10 3.5Z" clip-rule="evenodd" /></svg>Ethical Core</a>
+                <a href="#texas-law" class="nav-item text-blue-50 block hover:bg-blue-500 hover:text-white active:bg-blue-700 px-4 py-3 rounded-lg text-base font-semibold transition-colors duration-150 flex items-center"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 mr-3"><path d="M10.75 10.84V12a.75.75 0 0 1-1.5 0V10.84L8.28 9.22A.75.75 0 0 1 9 8h2a.75.75 0 0 1 .72.78l-.03.221-1.027 3.422A2.25 2.25 0 0 0 12.75 14H14.5a.75.75 0 0 1 0 1.5h-1.75a3.75 3.75 0 0 1-3.655-2.746L7.503 8.5H4.75A.75.75 0 0 1 4 7.75V6.5a.75.75 0 0 1 .75-.75h3.259c1.053 0 2.022.346 2.771.952L12.6 7.9A.75.75 0 0 1 14 7.75V6.5a.75.75 0 0 1 .75-.75h.5a.75.75 0 0 1 .75.75v1.25a.75.75 0 0 1-1.08.707l-1.82-1.213A2.25 2.25 0 0 0 10.75 6.5H8.553l1.27 4.22a.75.75 0 0 1-1.44.434L7.16 7.73A3.75 3.75 0 0 1 10.75 5h2.508a2.25 2.25 0 0 0 1.801-1.023A.75.75 0 0 1 15.81 3H16a.75.75 0 0 1 .75.75v.209A2.25 2.25 0 0 0 15.008 6H14a.75.75 0 0 1-.75-.75V4.852l-1.086.724a.75.75 0 0 1-1.028-.939l1.5-2.5A.75.75 0 0 1 13.508 2H10A2.25 2.25 0 0 0 7.95 3.57L6.219 8.89A2.25 2.25 0 0 0 4.326 10H3.5a.75.75 0 0 1-.75-.75V8.504a.75.75 0 0 1 .64-.742L5.582 7.5H6.5a.75.75 0 0 1 .75.75v.335L6.028 10.84A3.75 3.75 0 0 1 2.25 14H1.5a.75.75 0 0 1 0-1.5h.75A2.25 2.25 0 0 0 4.219 11H5.45l1.23 4.11A.75.75 0 0 1 6 15.75V17a.75.75 0 0 1-1.5 0v-1.25a.75.75 0 0 1 .276-1.48l1.531-.766A2.25 2.25 0 0 0 9.25 12.5h1.5a2.25 2.25 0 0 0 2.234-1.84Z" /></svg>TX Law & Policy</a>
+                <a href="#field-toolkit" class="nav-item text-blue-50 block hover:bg-blue-500 hover:text-white active:bg-blue-700 px-4 py-3 rounded-lg text-base font-semibold transition-colors duration-150 flex items-center"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 mr-3"><path fill-rule="evenodd" d="M2.878 3.144A1.5 1.5 0 0 0 1.122 4.856v10.288c0 .76.525 1.402 1.25 1.623a1.5 1.5 0 0 0 1.83-.828l2.006-4.013a1.5 1.5 0 0 1 .707-1.833l4.013-2.006a1.5 1.5 0 0 0 .828-1.83 1.5 1.5 0 0 0-1.623-1.25H4.856A1.5 1.5 0 0 0 2.878 3.144ZM12.5 10a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" clip-rule="evenodd" /><path d="M13.5 11.5a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Z" /></svg>Field Toolkit</a>
+                <a href="#officer-wellness" class="nav-item text-blue-50 block hover:bg-blue-500 hover:text-white active:bg-blue-700 px-4 py-3 rounded-lg text-base font-semibold transition-colors duration-150 flex items-center"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 mr-3"><path d="m9.653 16.915-.005-.003-.019-.01a20.759 20.759 0 0 1-1.162-.682 22.045 22.045 0 0 1-2.582-1.9C4.045 12.733 2 10.352 2 7.5a4.5 4.5 0 0 1 8-2.828A4.5 4.5 0 0 1 18 7.5c0 2.852-2.044 5.233-3.885 6.82a22.049 22.049 0 0 1-3.744 2.582l-.019.01-.005.003h-.002a.739.739 0 0 1-.69.001l-.002-.001ZM10 7.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" /></svg>Officer Wellness</a>
+                <a href="#resources" class="nav-item text-blue-50 block hover:bg-blue-500 hover:text-white active:bg-blue-700 px-4 py-3 rounded-lg text-base font-semibold transition-colors duration-150 flex items-center"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 mr-3"><path d="M12.232 4.232a2.5 2.5 0 0 1 3.536 3.536l-1.225 1.224a.75.75 0 0 0 1.061 1.06l1.224-1.224a4 4 0 0 0-5.656-5.656l-3 3a4 4 0 0 0 .225 5.865.75.75 0 0 0 .977-1.138 2.5 2.5 0 0 1-.142-3.665l3-3Z" /><path d="M8.603 17.397a.75.75 0 0 0-.977 1.138 4 4 0 0 0 5.656-5.656l-1.224-1.224a.75.75 0 0 0-1.061-1.06l-1.224 1.224a2.5 2.5 0 0 1-3.536-3.536l3-3a2.5 2.5 0 0 1 3.536 3.536l.007.007a.75.75 0 0 0 1.06-1.06l-.007-.007a4 4 0 0 0-5.656-5.656l-3 3a4 4 0 0 0-.225 5.865Z" /></svg>Resources</a>
+                <button id="mobileLogoutButton" class="w-full mt-3 px-4 py-3 bg-red-500 text-white text-base font-semibold rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 mr-2"><path fill-rule="evenodd" d="M3 4.25A2.25 2.25 0 0 1 5.25 2h5.5A2.25 2.25 0 0 1 13 4.25v2a.75.75 0 0 1-1.5 0v-2A.75.75 0 0 0 10.75 3h-5.5A.75.75 0 0 0 4.5 4.25v11.5c0 .414.336.75.75.75h5.5a.75.75 0 0 0 .75-.75v-2a.75.75 0 0 1 1.5 0v2A2.25 2.25 0 0 1 10.75 18h-5.5A2.25 2.25 0 0 1 3 15.75V4.25Z" clip-rule="evenodd" /><path fill-rule="evenodd" d="M6 10a.75.75 0 0 1 .75-.75h9.546l-1.048-.943a.75.75 0 1 1 1.004-1.114l2.5 2.25a.75.75 0 0 1 0 1.114l-2.5 2.25a.75.75 0 1 1-1.004-1.114l1.048-.943H6.75A.75.75 0 0 1 6 10Z" clip-rule="evenodd" /></svg>Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="pt-[72px] sm:pt-24 container mx-auto px-3 sm:px-4 lg:px-6 hidden">
+        
+        <section id="home" class="content-section py-8 sm:py-10 lg:py-12">
+            <div class="bg-white p-5 sm:p-6 lg:p-8 rounded-xl shadow-2xl">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-6 sm:mb-8 pb-5 border-b border-slate-300">
+                    <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-blue-700 mb-3 md:mb-0">Officer Dashboard</h2>
+                    <div class="text-sm text-slate-500">Welcome, Officer <span id="officerNamePlaceholder" class="font-semibold text-blue-600"></span>!</div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+                    <div class="lg:col-span-1 bg-slate-50 p-5 rounded-xl shadow-lg border border-slate-200">
+                        <h3 class="text-lg sm:text-xl font-semibold text-slate-700 mb-3 text-center">TCOLE Compliance</h3>
+                        <p class="text-xs text-slate-500 mb-2 text-center">Unit: <span id="tcoleUnitDates"></span></p>
+                        <div class="chart-container mx-auto mb-4">
+                            <canvas id="tcoleProgressChart" aria-label="TCOLE Compliance Progress Chart"></canvas>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-sm text-slate-600 mb-1"><span id="completedHours" class="font-bold text-blue-600 text-lg">0</span> / <span id="requiredHours" class="font-bold text-slate-700 text-lg">40</span> hours</p>
+                            <p class="text-xs text-slate-500 mb-3">Completed (Manually Tracked)</p>
+                            <button onclick="navigateToSection('tcole-hub')" class="px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg focus-visible:ring-offset-slate-50">Update TCOLE Log</button>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-2 bg-slate-50 p-5 rounded-xl shadow-lg border border-slate-200">
+                        <h3 class="text-lg sm:text-xl font-semibold text-slate-700 mb-4">Latest Texas Legal Updates</h3>
+                        <div id="legalUpdatesFeed" class="space-y-4 max-h-96 overflow-y-auto pr-2 modal-body-scrollable">
+                            </div>
+                        <button class="mt-4 px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg focus-visible:ring-offset-slate-50" onclick="navigateToSection('texas-law')">More Legal Updates</button>
+                    </div>
+                </div>
+
+                <div class="mt-8 sm:mt-10 grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
+                    <div class="bg-slate-50 p-5 rounded-xl shadow-lg border border-slate-200">
+                        <h3 class="text-lg sm:text-xl font-semibold text-slate-700 mb-3">Dilemma of the Week <span class="text-amber-500 font-medium">(Texas Focus)</span></h3>
+                        <p id="dilemmaOfTheWeekText" class="mb-3 text-sm text-slate-600 leading-relaxed"></p>
+                        <ol id="dilemmaOptions" class="list-decimal list-inside space-y-1.5 text-xs text-slate-500 mb-3"></ol>
+                        <div class="mt-3">
+                             <button id="analyzeDilemmaButton" class="px-4 py-2 bg-sky-500 text-white text-xs font-medium rounded-lg hover:bg-sky-600 transition-colors shadow hover:shadow-md focus-visible:ring-offset-slate-50">✨ AI Discussion Points</button>
+                        </div>
+                        <div id="dilemmaAiAnalysisContainer" class="ai-analysis-container mt-3 hidden">
+                            <h5 class="font-semibold text-sm text-slate-700 mb-1">AI Generated Discussion Points:</h5>
+                            <div id="dilemmaAiAnalysisContent" class="text-xs text-slate-600 leading-relaxed prose prose-xs max-w-none"></div>
+                            <div id="dilemmaAiLoading" class="loading-spinner hidden"></div>
+                        </div>
+                        <a href="#ethical-core" onclick="navigateToSection('ethical-core', 'cs1')" class="text-sm text-blue-600 hover:underline font-medium focus-visible:ring-offset-slate-50 mt-3 inline-block">Compare with Case Studies &raquo;</a>
+                    </div>
+                    <div class="bg-slate-50 p-5 rounded-xl shadow-lg border border-slate-200">
+                        <h3 class="text-lg sm:text-xl font-semibold text-slate-700 mb-4">Quick Toolkit Access</h3>
+                        <div class="grid grid-cols-2 gap-3 sm:gap-4">
+                            <button onclick="navigateToSection('texas-law', 'pc3103')" class="quick-link-btn">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path d="M3.5 2A1.5 1.5 0 0 0 2 3.5v13A1.5 1.5 0 0 0 3.5 18h13a1.5 1.5 0 0 0 1.5-1.5v-13A1.5 1.5 0 0 0 16.5 2h-13Zm1.75 1.5a.75.75 0 0 0 0 1.5h9.5a.75.75 0 0 0 0-1.5h-9.5Zm0 3.5a.75.75 0 0 0 0 1.5h5.5a.75.75 0 0 0 0-1.5h-5.5Z" /></svg>
+                                TX Penal Code
+                            </button>
+                            <button onclick="navigateToSection('texas-law', 'ccp1401')" class="quick-link-btn">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path d="M3.5 2A1.5 1.5 0 0 0 2 3.5v13A1.5 1.5 0 0 0 3.5 18h13a1.5 1.5 0 0 0 1.5-1.5v-13A1.5 1.5 0 0 0 16.5 2h-13Zm1.75 1.5a.75.75 0 0 0 0 1.5h9.5a.75.75 0 0 0 0-1.5h-9.5Zm0 3.5a.75.75 0 0 0 0 1.5h5.5a.75.75 0 0 0 0-1.5h-5.5Z" /></svg>
+                                TX CCP
+                            </button>
+                            <button onclick="navigateToSection('field-toolkit', 'sfst-guide')" class="quick-link-btn">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-11.25a.75.75 0 0 0-1.5 0v2.5h-2.5a.75.75 0 0 0 0 1.5h2.5v2.5a.75.75 0 0 0 1.5 0v-2.5h2.5a.75.75 0 0 0 0-1.5h-2.5v-2.5Z" clip-rule="evenodd" /></svg>
+                                SFST Guide
+                            </button>
+                            <button onclick="navigateToSection('field-toolkit', 'miranda-guide')" class="quick-link-btn">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path d="M3.508 2.25A2.25 2.25 0 0 0 1.25 4.5v11A2.25 2.25 0 0 0 3.508 17.75h12.984A2.25 2.25 0 0 0 18.75 15.5V4.5A2.25 2.25 0 0 0 16.492 2.25H3.508ZM2.75 6A.75.75 0 0 1 3.5 5.25h13a.75.75 0 0 1 0 1.5h-13A.75.75 0 0 1 2.75 6Zm0 4A.75.75 0 0 1 3.5 9.25h13a.75.75 0 0 1 0 1.5h-13A.75.75 0 0 1 2.75 10Zm0 4A.75.75 0 0 1 3.5 13.25h13a.75.75 0 0 1 0 1.5h-13a.75.75 0 0 1-.75-.75Z" /></svg>
+                                Miranda Warnings
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="tcole-hub" class="content-section py-8 sm:py-10 lg:py-12">
+            <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold mb-6 sm:mb-8 text-blue-700">TCOLE Hub & Compliance</h2>
+            <div class="bg-white p-5 sm:p-6 lg:p-8 rounded-xl shadow-2xl">
+                <p class="mb-6 text-slate-600 leading-relaxed">Manually track your TCOLE requirements and log completed courses. This information is conceptually saved to your user profile via Firebase Firestore for this session and is not a substitute for official TCOLE records or agency reporting.</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 mb-8 sm:mb-10">
+                    <div class="bg-slate-50 p-5 rounded-lg shadow border border-slate-200">
+                        <h3 class="text-lg sm:text-xl font-semibold text-slate-700 mb-4">My TCOLE Profile (Local Tracking)</h3>
+                        <div class="space-y-3 text-sm">
+                            <p><strong>PID (Example):</strong> <input type="text" value="123456" class="p-2 border border-slate-300 rounded-md bg-slate-100 w-full sm:w-auto" readonly aria-label="TCOLE PID"></p>
+                            <p><strong>Current Unit:</strong> <span id="tcoleHubUnitDates" class="font-medium"></span></p>
+                            <p><strong>Total Hours Required:</strong> <span id="tcoleHubRequiredHours" class="font-medium">40</span></p>
+                            <p><strong>Hours Logged (This Session):</strong> <span id="tcoleHubLoggedHours" class="font-medium text-blue-600">0</span></p>
+                            <div class="progress-bar-bg mt-2">
+                                <div id="tcoleHubProgressBar" class="progress-bar-fill" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 p-5 rounded-lg shadow border border-slate-200">
+                        <h3 class="text-lg sm:text-xl font-semibold text-slate-700 mb-4">Log Training (Example)</h3>
+                         <div class="space-y-3 text-sm">
+                            <label for="tcoleCourseName" class="block font-medium">Course Name/Number:</label>
+                            <input type="text" id="tcoleCourseName" placeholder="e.g., Legislative Update #3188" class="w-full p-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                            <label for="tcoleCourseHours" class="block font-medium">Hours Completed:</label>
+                            <input type="number" id="tcoleCourseHours" placeholder="e.g., 4" class="w-full p-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                            <button id="logTcoleTrainingButton" class="w-full px-5 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium shadow hover:shadow-md">Log Training Hours</button>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 class="text-lg sm:text-xl font-semibold text-slate-700 mb-5">Mandatory Training Topics (Current Cycle)</h3>
+                <p class="text-xs text-slate-500 mb-4">Mark topics as complete. This is for your personal tracking in this session.</p>
+                <div id="tcoleMandatesList" class="space-y-4"></div>
+                
+                <p class="mt-8 text-xs text-slate-500 italic">Disclaimer: Always verify official TCOLE requirements through the TCOLE website or your agency's training coordinator. This tool is for personal tracking assistance only.</p>
+            </div>
+        </section>
+
+        <section id="ethical-core" class="content-section py-8 sm:py-10 lg:py-12">
+            <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold mb-6 sm:mb-8 text-blue-700">Ethical Core: Principles & Case Studies</h2>
+            <div class="bg-white p-5 sm:p-6 lg:p-8 rounded-xl shadow-2xl mb-8 sm:mb-10">
+                <h3 class="text-xl sm:text-2xl font-semibold text-slate-700 mb-4">Fundamental Ethical Principles</h3>
+                <p class="mb-6 text-slate-600 leading-relaxed">Understanding these principles is key to upholding public trust. Click each to learn more.</p>
+                <div id="principlesContainer" class="space-y-4"></div>
+            </div>
+            <div class="bg-white p-5 sm:p-6 lg:p-8 rounded-xl shadow-2xl">
+                <h3 class="text-xl sm:text-2xl font-semibold text-slate-700 mb-4">Ethical Case Studies (Texas Context)</h3>
+                <p class="mb-6 text-slate-600 leading-relaxed">Analyze real-world and hypothetical scenarios. Click a case for details and AI-powered analysis.</p>
+                <div id="caseStudiesContainer" class="grid grid-cols-1 md:grid-cols-2 gap-5"></div>
+            </div>
+        </section>
+
+        <section id="texas-law" class="content-section py-8 sm:py-10 lg:py-12">
+            <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold mb-6 sm:mb-8 text-blue-700">Texas Law & Policy Reference</h2>
+            <div class="bg-white p-5 sm:p-6 lg:p-8 rounded-xl shadow-2xl">
+                <p class="mb-2 text-slate-600 leading-relaxed">Access key Texas statutes. Use the search to quickly find relevant sections. Full text is available via direct links to the official Texas Statutes website.</p>
+                <p class="text-xs text-slate-500 mb-5">Content summaries are for quick reference; always consult the full official statute for legal application.</p>
+                <div class="relative mb-6 sm:mb-8">
+                    <input type="text" id="lawSearchInput" placeholder="Search Texas codes (e.g., 'Theft', 'Sec. 31.03', 'Art. 14.01')..." class="w-full p-3 pl-10 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm text-sm" aria-label="Search Texas Law">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none" aria-hidden="true">
+                        <span class="text-slate-400 text-lg">🔍</span>
+                    </div>
+                </div>
+                <div id="texasLawContainer" class="space-y-3"></div>
+            </div>
+        </section>
+
+        <section id="field-toolkit" class="content-section py-8 sm:py-10 lg:py-12">
+            <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold mb-6 sm:mb-8 text-blue-700">Field Toolkit: Scenarios & Guides</h2>
+            <div class="bg-white p-5 sm:p-6 lg:p-8 rounded-xl shadow-2xl mb-8 sm:mb-10">
+                <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4">
+                    <div>
+                        <h3 class="text-xl sm:text-2xl font-semibold text-slate-700 mb-1 sm:mb-2">Interactive Ethical Scenarios</h3>
+                        <p class="text-slate-600 text-sm mb-1">Test your decision-making. Current Score: <span id="scenarioScore" class="font-bold text-amber-600 text-lg">0</span> points.</p>
+                        <p class="text-xs text-slate-500 mb-2 sm:mb-0">Each correct choice earns points. Review feedback to learn.</p>
+                    </div>
+                    <button id="generateAiScenarioButton" class="mt-3 sm:mt-0 px-4 py-2 bg-teal-500 text-white text-xs font-medium rounded-lg hover:bg-teal-600 transition-colors shadow hover:shadow-md focus-visible:ring-offset-slate-50 self-start sm:self-center">✨ Generate New AI Scenario</button>
+                </div>
+                <div id="aiGeneratedScenarioContainer" class="ai-analysis-container my-6 hidden p-5 border-teal-300 bg-teal-50">
+                    <h4 class="font-semibold text-md text-teal-700 mb-2">AI Generated Scenario:</h4>
+                    <div id="aiGeneratedScenarioContent" class="text-sm text-teal-800 leading-relaxed prose prose-sm max-w-none"></div>
+                    <div id="aiScenarioLoading" class="loading-spinner hidden"></div>
+                </div>
+                <div id="interactiveScenariosContainer" class="space-y-8"></div>
+            </div>
+            <div class="bg-white p-5 sm:p-6 lg:p-8 rounded-xl shadow-2xl">
+                <h3 class="text-xl sm:text-2xl font-semibold text-slate-700 mb-4">Quick Field Guides & Checklists</h3>
+                <div id="fieldGuidesContainer" class="space-y-4"></div>
+            </div>
+        </section>
+
+        <section id="officer-wellness" class="content-section py-8 sm:py-10 lg:py-12">
+            <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold mb-6 sm:mb-8 text-blue-700">Officer Wellness & Resilience</h2>
+            <div class="bg-white p-5 sm:p-6 lg:p-8 rounded-xl shadow-2xl">
+                <p class="mb-6 text-slate-600 leading-relaxed">Prioritizing your mental and physical well-being is crucial. Explore these resources for stress management, resilience building, and support.</p>
+                <div id="wellnessResourcesContainer" class="space-y-4"></div>
+            </div>
+        </section>
+
+        <section id="resources" class="content-section py-8 sm:py-10 lg:py-12">
+            <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold mb-6 sm:mb-8 text-blue-700">Further Resources & Links</h2>
+            <div class="bg-white p-5 sm:p-6 lg:p-8 rounded-xl shadow-2xl">
+                <p class="mb-6 text-slate-600 leading-relaxed">Connect with professional organizations, find additional training, and explore further reading. For agency administrators, information about the Ethical Badge Agency Portal can be found here.</p>
+                <ul id="externalResourcesList" class="list-none space-y-4"></ul>
+                 <div class="mt-8 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                    <h4 class="font-semibold text-slate-700 mb-2">For Agency Administrators:</h4>
+                    <p class="text-sm text-slate-600 mb-3">Ethical Badge offers an Agency Portal for department-wide training management, compliance tracking, and analytics. This requires a separate agency subscription.</p>
+                    <a href="#" class="text-sm text-blue-600 hover:underline font-medium focus-visible:ring-offset-slate-50 agency-portal-link">Learn More / Request Demo (Agency Portal) &raquo;</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="caseStudyModal" class="modal fixed inset-0 bg-slate-900 bg-opacity-75 flex items-center justify-center p-4 modal-inactive z-[100]" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="bg-white p-6 sm:p-8 rounded-xl shadow-2xl max-w-2xl lg:max-w-3xl w-full max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-300">
+                <h3 id="modalTitle" class="text-xl sm:text-2xl font-semibold text-blue-700">Case Study Title</h3>
+                <button id="closeModalButton" class="text-slate-400 hover:text-slate-600 text-3xl font-light leading-none focus-visible:ring-offset-white" aria-label="Close modal">&times;</button>
+            </div>
+            <div id="modalBody" class="text-slate-600 text-sm sm:text-base overflow-y-auto modal-body-scrollable flex-grow pr-2">
+                </div>
+            <div id="modalAiAnalysisSection" class="mt-4 pt-4 border-t border-slate-200">
+                 <button id="analyzeCaseStudyButton" class="w-full sm:w-auto px-5 py-2 bg-sky-500 text-white text-sm font-medium rounded-lg hover:bg-sky-600 transition-colors shadow hover:shadow-md focus-visible:ring-offset-white">✨ Analyze with AI</button>
+                 <div id="caseStudyAiAnalysisContainer" class="ai-analysis-container mt-3 hidden">
+                    <h5 class="font-semibold text-sm text-slate-700 mb-1">AI Generated Analysis:</h5>
+                    <div id="caseStudyAiAnalysisContent" class="text-xs text-slate-600 leading-relaxed prose prose-xs max-w-none"></div>
+                    <div id="caseStudyAiLoading" class="loading-spinner hidden"></div>
+                </div>
+            </div>
+            <div class="mt-6 pt-4 border-t border-slate-200 text-right space-x-3">
+                <button id="closeModalButtonFooter" class="px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors shadow hover:shadow-md focus-visible:ring-offset-white">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-blue-800 text-blue-100 text-center p-8 mt-12">
+        <div class="mb-4">
+            <a href="#" class="text-blue-300 hover:text-white hover:underline text-sm agency-portal-link">Agency Administration Portal</a>
+        </div>
+        <p class="text-sm">&copy; <span id="currentYear"></span> Ethical Badge - Texas LEO Professional Development Hub.</p>
+        <p class="text-xs mt-2 text-blue-300">Disclaimer: This tool is for informational and educational purposes only. Always refer to official TCOLE guidelines and your agency's policies.</p>
+    </footer>
+
+    <script type="module">
+        // Firebase SDK imports (ESM version for modern browsers)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { 
+            getAuth, 
+            createUserWithEmailAndPassword, 
+            signInWithEmailAndPassword, 
+            onAuthStateChanged, 
+            signOut,
+            updateProfile,
+            signInWithCustomToken,
+            signInAnonymously // Keep for potential initial anonymous access if needed by rules
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { 
+            getFirestore, 
+            doc, 
+            setDoc, 
+            getDoc,
+            Timestamp, // Keep Timestamp
+            enableIndexedDbPersistence, // Keep for offline
+            setLogLevel
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- Firebase Configuration & Initialization ---
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "YOUR_API_KEY_REPLACE_ME", 
+            authDomain: "YOUR_AUTHDOMAIN_REPLACE_ME",
+            projectId: "YOUR_PROJECTID_REPLACE_ME",
+            storageBucket: "YOUR_STORAGEBUCKET_REPLACE_ME",
+            messagingSenderId: "YOUR_MESSAGINGSENDERID_REPLACE_ME",
+            appId: "YOUR_APPID_REPLACE_ME"
+        };
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'ethical-badge-dev'; 
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        setLogLevel('debug'); 
+
+        try {
+            await enableIndexedDbPersistence(db);
+            console.log("Firestore offline persistence enabled.");
+        } catch (err) {
+            if (err.code == 'failed-precondition') {
+                console.warn("Firestore offline persistence failed (multiple tabs open or other issue).");
+            } else if (err.code == 'unimplemented') {
+                console.warn("Firestore offline persistence is not available in this browser.");
+            }
+        }
+
+        const officerData = {
+            name: "Officer", 
+            email: null,
+            uid: null,
+            tcolePID: "123456", 
+            currentUnit: { start: "Sept 1, 2023", end: "Aug 31, 2025", requiredHours: 40 },
+            completedHours: 0, 
+            manuallyLoggedTrainings: [] 
+        };
+
+        const legalUpdatesData = [
+            { date: "May 15, 2025", title: "New Legislation on Body Camera Footage Retention (TX HB 1234)", summary: "HB 1234 modifies requirements for body-worn camera footage retention periods for specific incident types. Agencies must update policies by Oct 1, 2025.", category: "Legislation", fullText: "House Bill 1234, passed during the 89th Texas Legislature, introduces significant changes to the Texas Occupations Code regarding the retention of body-worn camera (BWC) footage. Key provisions include extended retention periods for footage related to incidents involving use of force resulting in serious bodily injury (now 5 years, previously 90 days if no complaint filed), incidents subject to internal affairs investigations (duration of investigation plus 2 years), and footage used in criminal proceedings (until final adjudication and appeals). Agencies are mandated to update their local BWC policies to reflect these changes by October 1, 2025. This legislation aims to enhance transparency and accountability." },
+            { date: "Apr 28, 2025", title: "AG Opinion on Use of Force Reporting (KP-0567)", summary: "Clarifies reporting timelines for certain use of force incidents involving serious bodily injury under new TCOLE rules.", category: "AG Opinion", fullText: "Attorney General Opinion KP-0567 addresses ambiguities in TCOLE Rule §218.5 concerning the reporting of use of force incidents. The opinion clarifies that the 72-hour reporting window for incidents resulting in serious bodily injury begins from the moment the agency's administration becomes aware of the SBI, not necessarily from the time of the incident itself, particularly if the severity was not immediately apparent. It also reiterates that 'serious bodily injury' should be interpreted consistent with its definition in the Texas Penal Code. Law enforcement agencies should review their use of force reporting protocols to ensure alignment with this clarification." },
+            { date: "Mar 10, 2025", title: "Case Law Update: Smith v. Texas DPS - Search & Seizure", summary: "Recent appellate court ruling impacts vehicle searches based on olfactory evidence. Review implications for probable cause.", category: "Case Law", fullText: "In Smith v. Texas Department of Public Safety (Tex. App.—Austin, 2025), the Third Court of Appeals issued a ruling that may affect how officers establish probable cause for vehicle searches based solely on the odor of marijuana, especially in light of Texas's hemp laws. The court emphasized that the odor of marijuana, while still a factor, may require additional corroborating evidence to establish probable cause for a search, given the legal similarities in odor between marijuana and hemp. Officers should be mindful of this evolving standard and ensure thorough articulation of all factors contributing to probable cause in their reports. Training on distinguishing factors, if any, and articulation of 'odor plus' factors is recommended." },
+            { date: "Feb 01, 2025", title: "TCOLE Rule Change: Mandated IDD Training Hours Increased", summary: "TCOLE has increased the minimum required hours for Intellectual and Developmental Disabilities (IDD) training in the next cycle.", category: "TCOLE Rule", fullText: "Effective for the training cycle beginning September 1, 2025, TCOLE Rule §217.11 has been amended to increase the minimum required hours for Intellectual and Developmental Disabilities (IDD) training (Course #4204 or equivalent) from 4 hours to 8 hours for all peace officers. This change reflects a legislative mandate aimed at improving officer interactions with individuals with IDD. The updated curriculum requirements will emphasize practical de-escalation techniques, communication strategies, and community resources. Agencies should plan their training schedules accordingly to meet this new requirement." }
+        ];
+        
+        const dilemmaOfTheWeekData = {
+            text: "While off-duty at a local grocery store in your jurisdiction, you witness an individual conceal several high-value items and attempt to leave without paying. You are not in uniform and your firearm is secured in your vehicle. Store security is not immediately visible. What is your primary ethical and procedural consideration under Texas law and general orders?",
+            options: [
+                "Immediately intervene and attempt to detain the suspect, announcing yourself as an officer.",
+                "Prioritize personal safety; call 911 to report the theft in progress and provide a detailed suspect description.",
+                "Confront the individual verbally without attempting physical detention, hoping they abandon the items.",
+                "Do nothing, as you are off-duty and not equipped to safely intervene."
+            ]
+        };
+
+        const tcoleMandatesData = [
+            { id: "tmd1", name: "Legislative Update (#3188)", cycle: "2-year", status: "Pending", details: "Covers changes in state laws, use of force, de-escalation. Essential for staying current with evolving legal standards and best practices in Texas law enforcement.", hours: 4 }, 
+            { id: "tmd2", name: "Crisis Intervention Training (CIT) (#1850)", cycle: "4-year", status: "Pending", details: "Focuses on effective interaction with persons experiencing mental health crises. Emphasizes de-escalation techniques and community mental health resources. Crucial for modern policing.", hours: 40 },
+            { id: "tmd3", name: "ALERRT Level 1 (#3311)", cycle: "One-time by 8/31/27, then 16hrs/2yrs", status: "Pending", details: "Advanced Law Enforcement Rapid Response Training for active shooter events. Level 1 provides foundational tactical skills for immediate response. Ongoing ALERRT training is also required.", hours: 16 },
+            { id: "tmd4", name: "Finding Wellness – Building a Healthier Life (#4202)", cycle: "2-year", status: "Pending", details: "Addresses officer mental and physical well-being, focusing on stress management, resilience, and resources for a healthier lifestyle in a demanding profession.", hours: 4 },
+            { id: "tmd5", name: "Intellectual & Developmental Disabilities (IDD) Training (#4204)", cycle: "New Mandate (8hrs)", status: "Pending", details: "Provides officers with knowledge and skills to effectively identify, interact with, and de-escalate situations involving individuals with IDD. Recently increased to 8 hours.", hours: 8 }
+        ];
+        
+        const ethicalPrinciplesData = [
+            { name: "Integrity (Texas LEO Standard)", summary: "Absolute honesty, adherence to moral principles, and incorruptibility.", details: "In Texas, LEOs are held to a high standard of integrity. This includes truthful testimony, accurate reporting (e.g., offense reports, use of force documentation), rejecting gratuities that could imply influence, and upholding the Law Enforcement Code of Ethics. Any compromise of integrity erodes public trust and departmental credibility. It means doing the right thing, even when no one is watching, and being a role model of ethical conduct." },
+            { name: "Fairness & Impartiality (Constitutional Policing)", summary: "Equitable treatment under the law, free from bias or prejudice.", details: "Texas officers must enforce laws impartially, respecting the constitutional rights of all persons. Decisions (e.g., traffic stops, arrests, investigations) must be based on facts and law, not on race, ethnicity, gender, religion, sexual orientation, socioeconomic status, or other protected characteristics. This aligns with principles of procedural justice, ensuring that all individuals are treated with dignity and respect by law enforcement, fostering community trust and cooperation." },
+            { name: "Respect for Dignity (Community Interaction)", summary: "Valuing the inherent worth and rights of every individual.", details: "Treating all individuals – victims, witnesses, suspects, and community members – with dignity and respect is crucial, even in confrontational situations. This includes professional demeanor, active listening, empathy, and avoiding derogatory language or actions. It's a cornerstone of de-escalation, effective communication, and positive community relations in diverse Texas communities. Respectful interaction builds bridges and enhances legitimacy." },
+            { name: "Courage (Moral & Physical)", summary: "Bravery to act rightly, ethically, and protect others, despite risks.", details: "Physical courage is often required in dangerous calls and volatile situations. Moral courage is equally important: upholding ethical standards, intervening if a fellow officer acts improperly (Duty to Intervene), reporting misconduct, and making tough decisions aligned with law and policy, even under pressure, scrutiny, or when unpopular. It's about standing for what's right." },
+            { name: "Service & Duty (Public Trust)", summary: "Selfless commitment to public safety and community well-being.", details: "The primary duty of a Texas LEO is to serve the community and protect the public. This involves a commitment to problem-solving, proactive policing where appropriate, and a focus on positive outcomes beyond just enforcement. It's about safeguarding the peace, order, and rights of all people within Texas communities, and being a responsible steward of the public trust." },
+            { name: "Accountability (Transparency & Responsibility)", summary: "Answerability for actions, decisions, and use of authority.", details: "Texas LEOs are accountable to their agency, the community, and the law. This includes thorough and accurate documentation (reports, BWC footage), adherence to body-worn camera policies, cooperation with internal and external reviews, and taking responsibility for mistakes. Transparency in actions and decision-making processes builds trust and reinforces the legitimacy of law enforcement." }
+        ];
+
+        const caseStudiesData = [
+            { id: "cs1", title: "The Questionable Traffic Stop (Texas Racial Profiling Law)", summary: "An officer makes a traffic stop based on a vague suspicion in an area with a history of profiling complaints.", detailsRaw: "Officer Rodriguez is patrolling a neighborhood in a large Texas city that has previously faced scrutiny for racial profiling allegations. She observes a vehicle with out-of-state plates driving slowly through a residential area late at night. The driver is a young minority male. Officer Rodriguez initiates a traffic stop, citing 'suspicious behavior' as the primary reason, although no specific traffic violation was observed. During the stop, she asks for consent to search the vehicle, which is denied. No contraband is found.", discussionPointsHTML: "<strong>Discussion Points:</strong><ul><li>Applicability of Texas Code of Criminal Procedure Art. 2.131-2.138 (Prohibition on Racial Profiling).</li><li>Legal standard for reasonable suspicion for a traffic stop versus a mere hunch or generalized suspicion.</li><li>Impact of prior agency history or community perceptions of profiling in that area.</li><li>Ethical considerations of discretionary stops and potential for implicit bias.</li><li>Proper documentation requirements under TCOLE rules and agency policy for traffic stops, including data related to racial profiling.</li><li>Best practices for articulating grounds for a stop.</li></ul>" },
+            { id: "cs2", title: "Off-Duty Social Media Post (First Amendment & Agency Policy)", summary: "An officer's controversial social media post about a local political issue draws public criticism.", detailsRaw: "Deputy Miller, employed by a Texas County Sheriff's Office, posts a strongly worded, critical comment on his personal Facebook page regarding a contentious local ordinance being debated by the County Commissioners. His profile identifies him as a Deputy, and he occasionally posts pictures in uniform. Several community members see the post and complain to the Sheriff, stating it shows bias and unprofessionalism that could affect his on-duty performance.", discussionPointsHTML: "<strong>Discussion Points:</strong><ul><li>Balancing an officer's First Amendment rights with the agency's legitimate interest in maintaining public trust and an image of impartiality.</li><li>Review of specific agency social media policy regarding off-duty conduct and identification as an agency employee.</li><li>Potential for the post to be considered 'conduct unbecoming an officer' or to undermine public confidence in the officer or agency.</li><li>Impact on the officer's perceived ability to perform duties fairly and impartially towards all community members.</li><li>Legal precedents regarding public employee speech (e.g., Pickering v. Board of Education, Garcetti v. Ceballos).</li></ul>" },
+            { id: "cs3", title: "Use of Force Reporting Discrepancy (Texas Penal Code Sec. 9.51)", summary: "A use of force incident occurs, and a junior officer notices a discrepancy between their observation and a senior officer's report.", detailsRaw: "During an arrest of a resistant subject, Officer Chen (a junior officer) observes her Field Training Officer, Officer Davis, use a knee strike that Chen felt was unnecessary and occurred after the subject was already substantially controlled and complying. In Officer Davis's subsequent use of force report, the knee strike is described as occurring earlier in the encounter, when the subject was more actively resisting. Officer Chen knows that accurate reporting is critical under Texas Penal Code Sec. 9.51 (Justification of Force by Peace Officer) and departmental policy regarding truthfulness and use of force documentation.", discussionPointsHTML: "<strong>Discussion Points:</strong><ul><li>Ethical duty of truthfulness in all official reports and testimony.</li><li>Officer Chen's 'Duty to Intervene' or report misconduct if she believes excessive force was used or the report is falsified.</li><li>Navigating the chain of command versus ethical obligations when a senior officer is involved.</li><li>Potential legal and departmental consequences of inaccurate or falsified use of force reporting for all officers involved.</li><li>Protections for whistleblowers within the agency or under state law.</li><li>Importance of Body-Worn Camera footage in verifying accounts of use of force incidents.</li></ul>" }
+        ];
+        
+        const texasStatuteBaseUrl = "https://statutes.capitol.texas.gov/";
+        const texasLawData = [
+            { id: "pc3103", category: "Penal Code", title: "Sec. 31.03. THEFT.", summary: "Defines theft as unlawfully appropriating property with intent to deprive the owner. Details various levels of offenses based on the value of the property.", link: texasStatuteBaseUrl + "PE/htm/PE.31.htm#31.03", keywords: "theft, appropriation, property, consent, stolen, value, offense level" },
+            { id: "pc4904", category: "Penal Code", title: "Sec. 49.04. DRIVING WHILE INTOXICATED.", summary: "Defines DWI as operating a motor vehicle in a public place while intoxicated. Specifies offense levels, including enhancements for open container or high BAC.", link: texasStatuteBaseUrl + "PE/htm/PE.49.htm#49.04", keywords: "dwi, driving while intoxicated, motor vehicle, public place, alcohol, drugs, bac, open container" },
+            { id: "ccp1401", category: "Code of Criminal Procedure", title: "Art. 14.01. OFFENSE WITHIN VIEW.", summary: "Authorizes a peace officer or any person to arrest an offender without a warrant for an offense committed in their presence or view, if it's a felony or breach of the peace. Peace officers can arrest for any offense in their presence/view.", link: texasStatuteBaseUrl + "CR/htm/CR.14.htm#14.01", keywords: "arrest, warrantless arrest, presence, view, felony, public peace, misdemeanor" },
+            { id: "ccp2132", category: "Code of Criminal Procedure", title: "Art. 2.132. LAW ENFORCEMENT POLICY ON RACIAL PROFILING.", summary: "Mandates that all Texas law enforcement agencies adopt a detailed written policy on racial profiling, including definitions, prohibitions, complaint processes, and data collection requirements for motor vehicle stops.", link: texasStatuteBaseUrl + "CR/htm/CR.2.htm#2.132", keywords: "racial profiling, policy, motor vehicle stop, complaint process, data collection, reporting" },
+            { id: "tc545351", category: "Transportation Code", title: "Sec. 545.351. MAXIMUM SPEED REQUIREMENT.", summary: "Prohibits driving at a speed greater than reasonable and prudent. Requires operators to control speed to avoid collisions and to reduce speed for specific hazards or conditions.", link: texasStatuteBaseUrl + "TN/htm/TN.545.htm#545.351", keywords: "speeding, maximum speed, reasonable, prudent, due care, reduced speed, hazard" },
+            { id: "fc261101", category: "Family Code", title: "Sec. 261.101. PERSONS REQUIRED TO REPORT; TIME TO REPORT (Child Abuse/Neglect).", summary: "Mandates any person with cause to believe a child is being abused or neglected to report immediately. Professionals must report within 48 hours of first suspicion. This duty applies regardless of privileged communication.", link: texasStatuteBaseUrl + "FA/htm/FA.261.htm#261.101", keywords: "child abuse, neglect, report, professional, mandatory reporter, immediate report, 48 hours" }
+        ];
+
+        const interactiveScenariosData = [
+            { 
+                id: "scenarioTX1", 
+                title: "The Anonymous Tip (Texas Stop & Frisk)",
+                description: "You receive an anonymous tip detailing a person matching a specific description is selling narcotics at a known high-crime park in your Texas city. The tip provides the person's clothing and location within the park but no predictive information about future actions. Upon arrival, you see a person matching the description exactly, but they are merely standing and talking on a cell phone. What is your best course of action under Texas law (re: Florida v. J.L. and its application in Texas)?",
+                choices: [
+                    { text: "Immediately detain and frisk the individual based on the detailed anonymous tip.", outcome: "incorrect", feedback: "Incorrect (10 pts). Under Florida v. J.L. (and its interpretation in Texas), an anonymous tip lacking predictive information about illicit activity and merely describing a subject is generally insufficient for reasonable suspicion to stop and frisk. More corroboration is needed.", points: 10 },
+                    { text: "Conduct consensual observation, attempt to engage in a casual encounter to gather more information, or observe for any independent criminal activity before deciding to detain.", outcome: "correct", feedback: "Correct! (30 pts) This approach respects constitutional limits. An anonymous tip alone, without indicia of reliability or predictive information, often isn't enough for a stop. Further observation or a consensual encounter is a better initial step to develop reasonable suspicion if it exists.", points: 30 },
+                    { text: "Ignore the tip completely as anonymous tips are unreliable.", outcome: "neutral", feedback: "Neutral (15 pts). While caution is warranted, completely ignoring a tip about potential drug sales in a high-crime area might be a missed opportunity for lawful observation and potential intervention if further grounds develop. The key is *how* you act on it.", points: 15 }
+                ]
+            },
+            {
+                id: "scenarioTX2",
+                title: "Body Cam Activation (Texas Occupations Code §1701.655)",
+                description: "You are responding to a 'check welfare' call at a residence in Texas. Upon arrival, a person answers the door and seems agitated but there's no immediate sign of a crime. When should your body-worn camera ideally be activated according to Texas Occupations Code §1701.655 and common agency policy?",
+                choices: [
+                    { text: "Only if an offense is clearly occurring or an arrest is made.", outcome: "incorrect", feedback: "Incorrect (10 pts). Texas law and most policies require activation during *any* law enforcement-related encounter with the public, including investigative detentions and responses to calls for service, not just when an offense is obvious.", points: 10 },
+                    { text: "Prior to arriving at the scene, or as soon as safely possible upon initiating contact, to capture the entire interaction.", outcome: "correct", feedback: "Correct! (30 pts) Best practice and often policy is to activate the BWC *before* making contact or as soon as safely possible upon initiating an investigative or enforcement encounter. This ensures the entire interaction is captured.", points: 30 },
+                    { text: "After you determine a crime has been committed to save battery/storage.", outcome: "incorrect", feedback: "Incorrect (5 pts). Waiting until a crime is confirmed is too late and defeats the purpose of capturing the events leading up to that determination, which is crucial for transparency and evidence.", points: 5 }
+                ]
+            }
+        ];
+
+        const fieldGuidesData = [
+            { id: "sfst-guide", title: "Standardized Field Sobriety Tests (SFST) Quick Reference (Texas)", content: "<h4>Key Phases:</h4><ol class='list-decimal list-inside ml-4 mb-2'><li>Vehicle in Motion Observations</li><li>Personal Contact & Interview</li><li>Pre-Arrest Screening (SFSTs)</li></ol><h4>SFST Battery (NHTSA Approved):</h4><ul class='list-disc list-inside ml-4 space-y-1'><li><strong>Horizontal Gaze Nystagmus (HGN):</strong> 6 clues total (3 per eye). Check for: Lack of smooth pursuit, Distinct & sustained nystagmus at maximum deviation, Onset of nystagmus prior to 45 degrees. Remember vertical nystagmus for other substances.</li><li><strong>Walk and Turn (WAT):</strong> 8 clues total. Instructions stage: Cannot keep balance, Starts too soon. Walking stage: Stops while walking, Misses heel-to-toe, Steps off line, Uses arms to balance, Improper turn, Incorrect number of steps. (9 heel-to-toe steps out, turn, 9 back).</li><li><strong>One Leg Stand (OLS):</strong> 4 clues total. Sways while balancing, Uses arms to balance, Hops, Puts foot down. (Hold for 30 seconds).</li></ul><p class='mt-2'><strong>Note:</strong> Administer per NHTSA guidelines. Document all observations meticulously. Consider totality of circumstances for PC. Ensure safe location.</p>", category: "DWI Investigation" },
+            { id: "miranda-guide", title: "Miranda Warning (Texas - English/Spanish)", content: "<h4>English (Standard):</h4><p class='mb-2'>You have the right to remain silent. Anything you say can and will be used against you in a court of law. You have the right to an attorney. If you cannot afford an attorney, one will be appointed for you, prior to any questioning if you wish. You can decide at any time to exercise these rights and not answer any questions or make any statements.</p><p class='font-semibold'>Waiver (Ask both):</p><ol class='list-decimal list-inside ml-4'><li>Do you understand each of these rights I have explained to you?</li><li>Having these rights in mind, do you wish to talk to us now?</li></ol><hr class='my-3'><h4>Español (Ejemplo - Verify with certified translation):</h4><p class='mb-2'>Usted tiene el derecho de permanecer callado. Cualquier cosa que diga puede y será usada en su contra en un tribunal de justicia. Usted tiene el derecho a un abogado. Si no puede pagar un abogado, se le asignará uno antes de cualquier interrogatorio, si así lo desea. Usted puede decidir en cualquier momento ejercer estos derechos y no contestar ninguna pregunta ni hacer ninguna declaración.</p><p class='font-semibold'>Renuncia (Pregunte ambos):</p><ol class='list-decimal list-inside ml-4'><li>¿Entiende cada uno de estos derechos que le he explicado?</li><li>Teniendo estos derechos en mente, ¿desea hablar con nosotros ahora?</li></ol><p class='mt-2 text-xs'><strong>Important:</strong> Ensure suspect understands. If language barrier, use certified translator. Document waiver clearly.</p>", category: "Custodial Interrogation" },
+            { id: "uof-guide", title: "Use of Force Considerations (Texas Penal Code Ch. 9)", content: "<h4>Key Principles (Based on Graham v. Connor & TX Law):</h4><ul class='list-disc list-inside ml-4 mb-2 space-y-1'><li><strong>Objective Reasonableness:</strong> Judged from the perspective of a reasonable officer on the scene, not with 20/20 hindsight.</li><li><strong>Totality of Circumstances:</strong> All facts known to the officer at the time.</li><li><strong>Graham Factors:</strong><ol class='list-alpha list-inside ml-6'><li>Severity of the crime at issue.</li><li>Whether the suspect poses an immediate threat to the safety of officers or others.</li><li>Whether the suspect is actively resisting arrest or attempting to evade arrest by flight.</li></ol></li></ul><h4>Texas Penal Code Chapter 9 (Justification Excluding Criminal Responsibility):</h4><ul class='list-disc list-inside ml-4 space-y-1'><li><strong>Sec. 9.51 (Arrest and Search):</strong> Authorizes force, including deadly force in specific circumstances, to make or assist in making an arrest or search, or to prevent escape after arrest, if the officer reasonably believes the arrest or search is lawful and reasonably believes the force is immediately necessary.</li><li><strong>De-escalation:</strong> When possible and appropriate without compromising safety, officers should use de-escalation techniques.</li></ul><p class='mt-2'><strong>Documentation:</strong> Thoroughly document all use of force incidents, articulating the specific facts justifying the level of force used. Adhere to agency policy and BWC activation requirements.</p>", category: "Response to Resistance" }
+        ];
+        
+        const wellnessResourcesData = [
+            { id: "wr1", title: "Recognizing Signs of Burnout & Cumulative Stress", summary: "Learn to identify early indicators of burnout and cumulative stress in yourself and peers.", details: "Burnout and cumulative stress in law enforcement are serious concerns. Manifestations can include: <ul><li><strong>Emotional:</strong> Chronic exhaustion, cynicism, detachment, loss of enjoyment, irritability, anxiety, depression.</li><li><strong>Physical:</strong> Fatigue, sleep disturbances, headaches, digestive issues, changes in appetite/weight, increased susceptibility to illness.</li><li><strong>Behavioral:</strong> Social withdrawal, increased alcohol/substance use, risk-taking behavior, difficulty concentrating, decreased job performance, strained relationships.</li></ul>Recognizing these signs early is crucial for seeking help. Pay attention to persistent changes in your baseline. If you notice these in yourself or a colleague, it's important to talk about it and explore support options. Early intervention is key.", keywords: "burnout, stress, exhaustion, cynicism, cumulative stress, ptsd" },
+            { id: "wr2", title: "Mindfulness & Tactical Stress Reduction Techniques", summary: "Simple, practical exercises to manage acute and chronic stress and improve focus.", details: "Mindfulness involves paying attention to the present moment without judgment. Even short practices can help reduce stress and improve situational awareness. Try: <ul><li><strong>Tactical/Combat Breathing (Box Breathing):</strong> Inhale slowly for 4 counts, hold for 4 counts, exhale slowly for 4 counts, hold for 4 counts. Repeat for several minutes. This can be done discreetly to regulate your nervous system during stressful encounters.</li><li><strong>Grounding Techniques:</strong> If feeling overwhelmed, focus on your senses: Name 5 things you can see, 4 things you can touch, 3 things you can hear, 2 things you can smell, 1 thing you can taste. This helps bring you to the present.</li><li><strong>Mindful Observation:</strong> Briefly focus on a non-threatening detail in your environment (e.g., texture of your steering wheel, a specific sound) to anchor yourself.</li></ul> Consistent practice, even for a few minutes daily, can build resilience.", keywords: "mindfulness, breathing, stress reduction, focus, tactical breathing, grounding" },
+            { id: "wr3", title: "Accessing Peer Support & Mental Health Resources in Texas", summary: "Information on connecting with confidential peer support programs and professional mental health services.", details: "Many Texas agencies and law enforcement associations offer robust peer support programs. These programs provide confidential assistance from fellow officers who understand the unique stressors of the job. Examples include programs through TMPA, CLEAT, local agency initiatives (e.g., Austin PD, Dallas PD, Harris County SO have programs), and the Bill Blackwood LEMIT. <br><br>Additionally, specialized mental health professionals cater to first responders. Organizations like the National Alliance on Mental Illness (NAMI) Texas can also provide resources. Don't hesitate to reach out. Your agency likely has an Employee Assistance Program (EAP). Seeking help is a sign of strength. <br><br><strong>Key Texas Resources (Examples):</strong><ul><li>Your agency's Peer Support Team / EAP</li><li>Texas Law Enforcement Peer Network (TXLEPN - through LEMIT)</li><li>Bluebonnet CISM Team (Central Texas)</li><li>Local chapters of NAMI or Mental Health America</li></ul>Check your agency's resources or state-level LEO association websites for local peer support contacts and vetted mental health providers.", keywords: "peer support, mental health, help, resources, eap, therapy, counseling, tcole wellness" }
+        ];
+
+        const externalResourcesData = [
+            { name: "Texas Commission on Law Enforcement (TCOLE)", url: "https://www.tcole.texas.gov/", description: "Official TCOLE website for rules, forms, and licensing information." },
+            { name: "Texas Municipal Police Association (TMPA)", url: "https://www.tmpa.org/", description: "Advocacy, legal services, and resources for Texas municipal police." },
+            { name: "Combined Law Enforcement Associations of Texas (CLEAT)", url: "https://cleat.org/", description: "Largest police labor organization in Texas, offering legal and support services." },
+            { name: "Bill Blackwood Law Enforcement Management Institute of Texas (LEMIT)", url: "https://www.lemitonline.org/", description: "Provides leadership and management training for Texas law enforcement, including peer support resources." },
+            { name: "Texas Police Chiefs Association (TPCA)", url: "https://www.texaspolicechiefs.org/", description: "Professional development and advocacy for Texas police chiefs." },
+            { name: "National Alliance on Mental Illness (NAMI) Texas", url: "https://namitexas.org/", description: "Support, education, and advocacy for individuals and families affected by mental illness." },
+            { name: "FBI National Academy Associates - Texas Chapter", url: "https://fbinaatexas.org/", description: "Professional association for graduates of the FBI National Academy." }
+        ];
+
+        // --- START OF SCRIPT ---
+        // DOMContentLoaded is implicitly handled by type="module" for top-level script execution
+        
+        // --- Initialize Global Variables & Elements ---
+        const loginOverlay = document.getElementById('loginOverlay');
+        const loginButton = document.getElementById('loginButton');
+        const registerButton = document.getElementById('registerButton');
+        const loginNameInput = document.getElementById('loginName');
+        const loginEmailInput = document.getElementById('loginEmail');
+        const loginPasswordInput = document.getElementById('loginPassword');
+        const authMessageEl = document.getElementById('authMessage');
+        const headerEl = document.querySelector('header');
+        const mainContentEl = document.querySelector('main');
+        const logoutButton = document.getElementById('logoutButton');
+        const mobileLogoutButton = document.getElementById('mobileLogoutButton');
+        const headerOfficerNameEl = document.getElementById('headerOfficerName');
+
+
+        const currentYearEl = document.getElementById('currentYear');
+        const officerNameEl = document.getElementById('officerNamePlaceholder');
+        const tcoleUnitDatesEl = document.getElementById('tcoleUnitDates');
+        const completedHoursEl = document.getElementById('completedHours');
+        const requiredHoursEl = document.getElementById('requiredHours');
+        const legalUpdatesFeedContainer = document.getElementById('legalUpdatesFeed');
+        const dilemmaTextEl = document.getElementById('dilemmaOfTheWeekText');
+        const dilemmaOptionsEl = document.getElementById('dilemmaOptions');
+        const analyzeDilemmaButton = document.getElementById('analyzeDilemmaButton');
+        const dilemmaAiAnalysisContainer = document.getElementById('dilemmaAiAnalysisContainer');
+        const dilemmaAiAnalysisContentEl = document.getElementById('dilemmaAiAnalysisContent');
+        const dilemmaAiLoadingEl = document.getElementById('dilemmaAiLoading');
+        const tcoleHubUnitDatesEl = document.getElementById('tcoleHubUnitDates');
+        const tcoleHubRequiredHoursEl = document.getElementById('tcoleHubRequiredHours');
+        const tcoleHubLoggedHoursEl = document.getElementById('tcoleHubLoggedHours');
+        const tcoleHubProgressBar = document.getElementById('tcoleHubProgressBar');
+        const tcoleMandatesContainer = document.getElementById('tcoleMandatesList');
+        const logTcoleTrainingButton = document.getElementById('logTcoleTrainingButton');
+        const tcoleCourseNameInput = document.getElementById('tcoleCourseName');
+        const tcoleCourseHoursInput = document.getElementById('tcoleCourseHours');
+        const principlesContainer = document.getElementById('principlesContainer');
+        const caseStudiesContainer = document.getElementById('caseStudiesContainer');
+        const modal = document.getElementById('caseStudyModal');
+        const modalTitleEl = document.getElementById('modalTitle');
+        const modalBodyEl = document.getElementById('modalBody');
+        const closeModalButton = document.getElementById('closeModalButton');
+        const closeModalButtonFooter = document.getElementById('closeModalButtonFooter');
+        const analyzeCaseStudyButton = document.getElementById('analyzeCaseStudyButton');
+        const caseStudyAiAnalysisContainer = document.getElementById('caseStudyAiAnalysisContainer');
+        const caseStudyAiAnalysisContentEl = document.getElementById('caseStudyAiAnalysisContent');
+        const caseStudyAiLoadingEl = document.getElementById('caseStudyAiLoading');
+        const lawContainer = document.getElementById('texasLawContainer');
+        const lawSearchInput = document.getElementById('lawSearchInput');
+        const scenariosContainer = document.getElementById('interactiveScenariosContainer');
+        const scenarioScoreEl = document.getElementById('scenarioScore');
+        const fieldGuidesContainer = document.getElementById('fieldGuidesContainer');
+        const wellnessContainer = document.getElementById('wellnessResourcesContainer');
+        const externalResourcesContainer = document.getElementById('externalResourcesList');
+        const mobileMenuButton = document.getElementById('mobileMenuButton');
+        const mobileMenu = document.getElementById('mobileMenu');
+        const menuIconOpen = mobileMenuButton.querySelector('.menu-icon-open');
+        const menuIconClose = mobileMenuButton.querySelector('.menu-icon-close');
+        const navItems = document.querySelectorAll('.nav-item');
+        const sections = document.querySelectorAll('.content-section');
+        const generateAiScenarioButton = document.getElementById('generateAiScenarioButton');
+        const aiGeneratedScenarioContainer = document.getElementById('aiGeneratedScenarioContainer');
+        const aiGeneratedScenarioContentEl = document.getElementById('aiGeneratedScenarioContent');
+        const aiScenarioLoadingEl = document.getElementById('aiScenarioLoading');
+        let currentScore = 0;
+        let currentCaseStudyForAI = null; 
+        let currentUser = null; // Will hold Firebase user object
+
+        // --- Firebase Auth & Firestore Functions ---
+        async function handleUserLogin(user) {
+            currentUser = user;
+            officerData.uid = user.uid;
+            officerData.email = user.email;
+            officerData.name = user.displayName || loginNameInput.value.trim() || "Officer"; 
+
+            if(loginOverlay) loginOverlay.classList.add('hidden');
+            if(headerEl) headerEl.classList.remove('hidden');
+            if(mainContentEl) mainContentEl.classList.remove('hidden');
+            if(headerOfficerNameEl) {
+                headerOfficerNameEl.textContent = `Officer ${officerData.name.split(' ').pop()}`; // Display last name or full if one word
+                headerOfficerNameEl.classList.remove('hidden');
+            }
+            
+            await loadUserDataFromFirestore(); 
+            initializeOfficerDashboard(); 
+            initializeTcoleHub();
+            updateActiveLink(); 
+            console.log("User logged in:", currentUser.email, "UID:", currentUser.uid);
+        }
+
+        async function handleUserLogout() {
+            currentUser = null;
+            officerData.uid = null;
+            officerData.email = null;
+            officerData.name = "Officer";
+            officerData.completedHours = 0;
+            officerData.manuallyLoggedTrainings = [];
+
+            if(loginOverlay) loginOverlay.classList.remove('hidden'); // Show login overlay
+            if(headerEl) headerEl.classList.add('hidden');
+            if(mainContentEl) mainContentEl.classList.add('hidden');
+            if(headerOfficerNameEl) headerOfficerNameEl.classList.add('hidden');
+            if(authMessageEl) authMessageEl.textContent = "";
+            if(loginEmailInput) loginEmailInput.value = ""; 
+            if(loginPasswordInput) loginPasswordInput.value = "";
+            if(loginNameInput) loginNameInput.value = "";
+            console.log("User logged out.");
+        }
+
+        async function loadUserDataFromFirestore() {
+            if (!currentUser) return;
+            const userDocRef = doc(db, `artifacts/${appId}/users/${currentUser.uid}/profile`, "data");
+            try {
+                const docSnap = await getDoc(userDocRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    officerData.name = data.name || currentUser.displayName || officerData.name;
+                    officerData.tcolePID = data.tcolePID || officerData.tcolePID;
+                    officerData.manuallyLoggedTrainings = data.manuallyLoggedTrainings || [];
+                    officerData.currentUnit = data.currentUnit || officerData.currentUnit;
+                    officerData.completedHours = 0; 
+                    officerData.manuallyLoggedTrainings.forEach(log => {
+                        if (typeof log.hours === 'number') { 
+                           officerData.completedHours += log.hours;
+                        }
+                    });
+                    console.log("User data loaded from Firestore:", data);
+                } else {
+                    console.log("No user profile data found in Firestore, creating new for:", officerData.name);
+                    await saveUserDataToFirestore({
+                        name: officerData.name,
+                        email: officerData.email, 
+                        tcolePID: officerData.tcolePID,
+                        manuallyLoggedTrainings: [],
+                        currentUnit: officerData.currentUnit,
+                        createdAt: Timestamp.now()
+                    });
+                }
+            } catch (error) {
+                console.error("Error loading user data from Firestore:", error);
+            }
+        }
+
+        async function saveUserDataToFirestore(dataToSave) {
+            if (!currentUser) { console.warn("Cannot save data, no user logged in."); return; }
+            const userDocRef = doc(db, `artifacts/${appId}/users/${currentUser.uid}/profile`, "data");
+            try {
+                await setDoc(userDocRef, dataToSave, { merge: true });
+                console.log("User data saved to Firestore");
+            } catch (error) {
+                console.error("Error saving user data to Firestore:", error);
+            }
+        }
+        
+        async function saveTrainingLogToFirestore(trainingEntry) {
+            if(!currentUser) { console.warn("Cannot log training, no user logged in."); return; }
+            const currentTrainings = Array.isArray(officerData.manuallyLoggedTrainings) ? [...officerData.manuallyLoggedTrainings] : [];
+            
+            const existingEntryIndex = currentTrainings.findIndex(log => log.id === trainingEntry.id && !trainingEntry.id.startsWith('custom-'));
+            if (existingEntryIndex !== -1 && trainingEntry.id.startsWith('tmd')) { // Only prevent duplicates for predefined mandates
+                console.log("Training mandate already logged:", trainingEntry.id);
+                 // Potentially update hours if different, or just skip
+                // For now, let's assume if it's logged, it's done.
+            } else {
+                currentTrainings.push(trainingEntry);
+            }
+            
+            await saveUserDataToFirestore({ manuallyLoggedTrainings: currentTrainings });
+            officerData.manuallyLoggedTrainings = currentTrainings; 
+            
+            officerData.completedHours = 0;
+            officerData.manuallyLoggedTrainings.forEach(log => {
+                if (typeof log.hours === 'number') {
+                    officerData.completedHours += log.hours;
+                }
+            });
+            updateTcoleProgressDisplay();
+        }
+
+
+        // Auth State Listener
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                await handleUserLogin(user);
+            } else {
+                handleUserLogout();
+            }
+        });
+
+        (async () => {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    console.log("Attempting to sign in with custom token...");
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    console.log("No initial auth token. User needs to login/register.");
+                    if(loginOverlay) loginOverlay.style.display = 'flex';
+                }
+            } catch (error) {
+                console.error("Error during initial auth:", error);
+                if(loginOverlay) loginOverlay.style.display = 'flex'; 
+            }
+        })();
+
+
+        // --- Utility Functions ---
+        function escapeHtml(unsafe) {
+            if (typeof unsafe !== 'string') { console.warn("escapeHtml non-string:", unsafe); return String(unsafe); }
+            return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+        
+        async function callGeminiAPI(prompt) {
+            let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
+            const payload = { contents: chatHistory }; const apiKey = ""; 
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+            try {
+                const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!response.ok) { const errorData = await response.json(); console.error("Gemini API Error:", errorData); return `Error: ${errorData.error?.message || response.statusText}.`; }
+                const result = await response.json();
+                if (result.candidates?.[0]?.content?.parts?.[0]) {
+                    let text = result.candidates[0].content.parts[0].text;
+                    text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>').replace(/^- (.*?)(\n|$)/gm, '<li>$1</li>').replace(/(<li>.*?<\/li>)+/gs, '<ul>$&</ul>').replace(/\n/g, '<br>');
+                    return text;
+                } else { console.error("Gemini API Response Error: No valid content found", result); return "AI analysis could not be retrieved."; }
+            } catch (error) { console.error("Fetch Error calling Gemini API:", error); return "An error occurred contacting AI service."; }
+        }
+
+        // --- UI Population & Event Handlers ---
+        function initializeOfficerDashboard() {
+            if(currentYearEl) currentYearEl.textContent = new Date().getFullYear();
+            if(officerNameEl) officerNameEl.textContent = officerData.name; 
+            if(tcoleUnitDatesEl) tcoleUnitDatesEl.textContent = `${officerData.currentUnit.start} - ${officerData.currentUnit.end}`;
+            
+            if (document.getElementById('tcoleProgressChart')) {
+                let chartStatus = Chart.getChart("tcoleProgressChart"); if (chartStatus != undefined) { chartStatus.destroy(); }
+                new Chart(document.getElementById('tcoleProgressChart').getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Completed Hours', 'Remaining Hours'],
+                        datasets: [{
+                            label: 'TCOLE Hours',
+                            data: [officerData.completedHours, Math.max(0, officerData.currentUnit.requiredHours - officerData.completedHours)],
+                            backgroundColor: ['#2563eb', '#e5e7eb'], borderColor: ['#ffffff', '#ffffff'],
+                            borderWidth: 3, hoverOffset: 4
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { display: false }, tooltip: { enabled: true, callbacks: { label: (c) => `${c.label}: ${c.raw} hours` }}}}
+                });
+            }
+            if(completedHoursEl) completedHoursEl.textContent = officerData.completedHours;
+            if(requiredHoursEl) requiredHoursEl.textContent = officerData.currentUnit.requiredHours;
+        }
+
+        function updateActiveLink() {
+            let currentSectionId = 'home'; let minDistance = Infinity;
+            sections.forEach(section => {
+                const rect = section.getBoundingClientRect();
+                const distanceToTop = Math.abs(rect.top - (headerEl.offsetHeight || 100)); 
+                const isInViewport = rect.top < window.innerHeight && rect.bottom >= (headerEl.offsetHeight || 100);
+                if (isInViewport && distanceToTop < minDistance) { minDistance = distanceToTop; currentSectionId = section.id; } 
+                else if (rect.top < window.innerHeight && rect.top > 0 && distanceToTop < minDistance && !document.querySelector('.nav-link-active')) { minDistance = distanceToTop; currentSectionId = section.id; }
+            });
+            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 50) { const lastSection = sections[sections.length - 1]; if (lastSection) currentSectionId = lastSection.id; }
+            navItems.forEach(item => {
+                item.classList.remove('nav-link-active', 'font-semibold', 'text-white'); item.classList.add('text-blue-100'); 
+                if (item.getAttribute('href') === `#${currentSectionId}`) { item.classList.add('nav-link-active', 'font-semibold', 'text-white'); item.classList.remove('text-blue-100'); }
+            });
+        }
+        window.addEventListener('scroll', updateActiveLink, { passive: true }); 
+        
+        if(mobileMenuButton) {
+            mobileMenuButton.addEventListener('click', () => {
+                const expanded = mobileMenuButton.getAttribute('aria-expanded') === 'true' || false;
+                mobileMenuButton.setAttribute('aria-expanded', String(!expanded));
+                if(mobileMenu) mobileMenu.classList.toggle('menu-open'); 
+                if(menuIconOpen) menuIconOpen.classList.toggle('hidden');
+                if(menuIconClose) menuIconClose.classList.toggle('hidden');
+                // Adjust mobile menu position based on header height
+                if(mobileMenu && headerEl) mobileMenu.style.top = `${headerEl.offsetHeight}px`;
+            });
+        }
+        
+        document.querySelectorAll('#mobileMenu a, header nav a, footer a.agency-portal-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                const href = link.getAttribute('href');
+                if (href && href.startsWith('#')) { if (mobileMenu && mobileMenu.classList.contains('menu-open')) { mobileMenuButton.click(); } } 
+                else if (link.classList.contains('agency-portal-link')) { e.preventDefault(); alert('Agency Administration Portal link clicked.'); }
+            });
+        });
+        
+        if(legalUpdatesFeedContainer) {
+            legalUpdatesFeedContainer.innerHTML = ""; 
+            legalUpdatesData.slice(0, 4).forEach(update => { 
+                const item = `
+                    <div class="p-3.5 bg-white rounded-lg shadow border border-slate-200 hover:shadow-lg transition-shadow duration-200 cursor-pointer" role="article" tabindex="0" aria-labelledby="update-title-${update.date.replace(/\s+/g, '-')}" onclick="openUpdateModal(this)" data-fulltext="${escapeHtml(update.fullText || update.summary)}" data-title="${escapeHtml(update.title)}">
+                        <span class="text-xs font-semibold ${update.category === 'Legislation' ? 'text-green-700 bg-green-100' : update.category === 'AG Opinion' ? 'text-purple-700 bg-purple-100' : update.category === 'Case Law' ? 'text-red-700 bg-red-100' : 'text-sky-700 bg-sky-100'} px-2 py-0.5 rounded-full">${escapeHtml(update.category)}</span>
+                        <h4 id="update-title-${update.date.replace(/\s+/g, '-')}" class="font-medium text-slate-800 text-sm mt-1.5 mb-0.5">${escapeHtml(update.title)}</h4>
+                        <p class="text-xs text-slate-500 mb-1">${escapeHtml(update.date)}</p>
+                        <p class="text-xs text-slate-600 leading-relaxed">${escapeHtml(update.summary.substring(0,120))}...</p>
+                    </div>`;
+                legalUpdatesFeedContainer.innerHTML += item;
+            });
+        }
+        
+        window.openUpdateModal = (element) => {
+            const fullText = element.dataset.fulltext; const title = element.dataset.title; 
+            if(modal && modalTitleEl && modalBodyEl) {
+                modalTitleEl.innerHTML = title; 
+                modalBodyEl.innerHTML = `<div class="prose prose-sm sm:prose-base max-w-none">${fullText.replace(/\n/g, '<br><br>')}</div>`; 
+                modal.classList.remove('modal-inactive'); modal.classList.add('modal-active');
+                if(closeModalButton) closeModalButton.focus();
+                const aiSection = modal.querySelector('#modalAiAnalysisSection');
+                if (aiSection) aiSection.classList.add('hidden');
+            }
+        }
+
+        if(dilemmaTextEl) dilemmaTextEl.textContent = dilemmaOfTheWeekData.text;
+        if(dilemmaOptionsEl) {
+            dilemmaOptionsEl.innerHTML = ""; 
+            dilemmaOfTheWeekData.options.forEach(opt => {
+                dilemmaOptionsEl.innerHTML += `<li class="pb-0.5">${escapeHtml(opt)}</li>`;
+            });
+        }
+
+        if(analyzeDilemmaButton) {
+            analyzeDilemmaButton.addEventListener('click', async () => {
+                if(dilemmaAiLoadingEl) dilemmaAiLoadingEl.classList.remove('hidden');
+                if(dilemmaAiAnalysisContentEl) dilemmaAiAnalysisContentEl.innerHTML = "";
+                if(dilemmaAiAnalysisContainer) dilemmaAiAnalysisContainer.classList.remove('hidden');
+                const prompt = `You are an AI assistant for Texas Law Enforcement Officers. Analyze the following ethical dilemma and provide concise discussion points, key ethical considerations, potential frameworks or questions an officer might ask themselves, and broader implications of choices. Dilemma: "${dilemmaOfTheWeekData.text}" Options provided were: ${dilemmaOfTheWeekData.options.join(', ')}. Focus on practical advice and Texas context where applicable.`;
+                const analysis = await callGeminiAPI(prompt);
+                if(dilemmaAiAnalysisContentEl) dilemmaAiAnalysisContentEl.innerHTML = analysis;
+                if(dilemmaAiLoadingEl) dilemmaAiLoadingEl.classList.add('hidden');
+            });
+        }
+        
+        function initializeTcoleHub() {
+            if(tcoleHubUnitDatesEl) tcoleHubUnitDatesEl.textContent = `${officerData.currentUnit.start} - ${officerData.currentUnit.end}`;
+            if(tcoleHubRequiredHoursEl) tcoleHubRequiredHoursEl.textContent = officerData.currentUnit.requiredHours;
+            updateTcoleProgressDisplay(); 
+            renderTcoleMandates();
+        }
+
+        function updateTcoleProgressDisplay() {
+            if(tcoleHubLoggedHoursEl) tcoleHubLoggedHoursEl.textContent = officerData.completedHours; 
+            if(tcoleHubProgressBar) {
+                const percent = officerData.currentUnit.requiredHours > 0 ? (officerData.completedHours / officerData.currentUnit.requiredHours) * 100 : 0;
+                const displayPercent = Math.min(100, Math.round(percent));
+                tcoleHubProgressBar.style.width = `${displayPercent}%`;
+                tcoleHubProgressBar.textContent = `${displayPercent}%`;
+                tcoleHubProgressBar.setAttribute('aria-valuenow', String(displayPercent));
+            }
+            if (document.getElementById('tcoleProgressChart')) {
+                let chartStatus = Chart.getChart("tcoleProgressChart"); if (chartStatus != undefined) { chartStatus.destroy(); }
+                 new Chart(document.getElementById('tcoleProgressChart').getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Completed Hours', 'Remaining Hours'],
+                        datasets: [{
+                            label: 'TCOLE Hours',
+                            data: [officerData.completedHours, Math.max(0, officerData.currentUnit.requiredHours - officerData.completedHours)],
+                            backgroundColor: ['#2563eb', '#e5e7eb'], borderColor: ['#ffffff', '#ffffff'],
+                            borderWidth: 3, hoverOffset: 4
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { display: false }, tooltip: { enabled: true, callbacks: { label: (c) => `${c.label}: ${c.raw} hours` }}}}
+                });
+            }
+            if(completedHoursEl) completedHoursEl.textContent = officerData.completedHours;
+        }
+        
+        function renderTcoleMandates() {
+            if(!tcoleMandatesContainer) return;
+            tcoleMandatesContainer.innerHTML = ""; 
+            tcoleMandatesData.forEach(mandate => {
+                const isCompleted = officerData.manuallyLoggedTrainings.some(log => log.id === mandate.id);
+                const statusText = isCompleted ? "Completed (Logged)" : "Pending";
+                const statusColor = isCompleted ? 'text-green-600 bg-green-100 border-green-300' : 'text-amber-600 bg-amber-50 border-amber-300';
+                
+                const item = `
+                    <div class="p-4 border border-slate-200 rounded-lg bg-slate-50">
+                        <div class="flex justify-between items-start sm:items-center flex-col sm:flex-row">
+                            <h4 class="font-semibold text-blue-700 text-base mb-1 sm:mb-0">${escapeHtml(mandate.name)}</h4>
+                            <span class="text-xs font-medium ${statusColor} px-2.5 py-1 rounded-full border">${escapeHtml(statusText)}</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-1">Cycle: ${escapeHtml(mandate.cycle)} | Hours: ${mandate.hours}</p>
+                        <p class="text-sm text-slate-600 mt-1.5 leading-relaxed">${escapeHtml(mandate.details)}</p>
+                        ${!isCompleted ? `<button data-mandate-id="${mandate.id}" data-mandate-hours="${mandate.hours}" data-mandate-name="${escapeHtml(mandate.name)}" class="mark-tcole-complete-btn mt-3 px-4 py-1.5 bg-sky-500 text-white text-xs font-medium rounded-md hover:bg-sky-600 transition-colors">Mark as Completed</button>` : ''}
+                    </div>`;
+                tcoleMandatesContainer.innerHTML += item;
+            });
+            addMarkCompleteListeners();
+        }
+
+        function addMarkCompleteListeners() {
+            document.querySelectorAll('.mark-tcole-complete-btn').forEach(button => {
+                if (button.dataset.listenerAttached === 'true') return;
+                button.dataset.listenerAttached = 'true';
+                button.addEventListener('click', async function() {
+                    const mandateId = this.dataset.mandateId;
+                    const mandateHours = parseInt(this.dataset.mandateHours);
+                    const mandateName = this.dataset.mandateName;
+                    if (!officerData.manuallyLoggedTrainings.some(log => log.id === mandateId)) {
+                        const newEntry = { id: mandateId, hours: mandateHours, name: mandateName, dateLogged: Timestamp.now().toDate().toISOString() }; // Use ISO string for simplicity if not using Firestore Timestamp directly
+                        await saveTrainingLogToFirestore(newEntry); 
+                        renderTcoleMandates(); 
+                    }
+                });
+            });
+        }
+        
+        if(logTcoleTrainingButton) {
+            logTcoleTrainingButton.addEventListener('click', async () => {
+                const courseName = tcoleCourseNameInput.value.trim();
+                const courseHours = parseInt(tcoleCourseHoursInput.value.trim());
+                if (courseName && !isNaN(courseHours) && courseHours > 0) {
+                    const newLogEntry = { id: `custom-${Date.now()}`, name: courseName, hours: courseHours, dateLogged: Timestamp.now().toDate().toISOString() };
+                    await saveTrainingLogToFirestore(newLogEntry);
+                    tcoleCourseNameInput.value = ""; tcoleCourseHoursInput.value = "";
+                    alert("Training logged successfully.");
+                } else { alert("Please enter a valid course name and hours."); }
+            });
+        }
+
+        if(principlesContainer) {
+            principlesContainer.innerHTML = ""; 
+            ethicalPrinciplesData.forEach(principle => {
+                const card = `
+                    <div class="expandable-card border border-slate-300 rounded-xl shadow-sm overflow-hidden">
+                        <button class="w-full text-left p-4 sm:p-5 bg-slate-100 hover:bg-slate-200 focus-visible:bg-slate-200 rounded-t-xl focus:outline-none flex justify-between items-center transition-colors duration-200" aria-expanded="false">
+                            <div>
+                                <span class="font-semibold text-md sm:text-lg text-blue-700">${escapeHtml(principle.name)}</span>
+                                <p class="text-sm font-normal text-slate-500 mt-0.5">${escapeHtml(principle.summary)}</p>
+                            </div>
+                            <span class="arrow-icon text-blue-700 text-2xl transform" aria-hidden="true">&#9660;</span>
+                        </button>
+                        <div class="expandable-content px-4 sm:px-5 border-t border-slate-300 card-collapsed text-slate-700 bg-white rounded-b-xl">
+                            <p class="py-4 text-sm sm:text-base leading-relaxed">${principle.details.replace(/\n/g, '<br>')}</p>
+                        </div>
+                    </div>`;
+                principlesContainer.innerHTML += card;
+            });
+        }
+
+        if(caseStudiesContainer && modal && modalTitleEl && modalBodyEl && analyzeCaseStudyButton) {
+            caseStudiesContainer.innerHTML = ""; 
+            caseStudiesData.forEach(cs => {
+                const item = `
+                    <button data-id="${cs.id}" class="case-study-item block w-full h-full text-left p-4 sm:p-5 bg-slate-100 hover:bg-slate-200 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white flex flex-col justify-between" aria-label="View details for case study: ${escapeHtml(cs.title)}">
+                        <div>
+                            <h4 class="font-semibold text-md sm:text-lg text-blue-700 mb-1.5">${escapeHtml(cs.title)}</h4>
+                            <p class="text-sm text-slate-600 leading-relaxed">${escapeHtml(cs.summary)}</p>
+                        </div>
+                        <span class="text-xs text-blue-500 mt-3 inline-block font-medium">View Details &raquo;</span>
+                    </button>`;
+                caseStudiesContainer.innerHTML += item;
+            });
+
+            document.querySelectorAll('.case-study-item').forEach(button => {
+                button.addEventListener('click', () => {
+                    const caseId = button.dataset.id;
+                    currentCaseStudyForAI = caseStudiesData.find(c => c.id === caseId);
+                    if (currentCaseStudyForAI) {
+                        modalTitleEl.innerHTML = escapeHtml(currentCaseStudyForAI.title);
+                        modalBodyEl.innerHTML = `<div class="prose prose-sm sm:prose-base max-w-none">${currentCaseStudyForAI.detailsRaw.replace(/\n/g, '<br><br>')}<br><br>${currentCaseStudyForAI.discussionPointsHTML}</div>`;
+                        const aiSection = modal.querySelector('#modalAiAnalysisSection');
+                        if(aiSection) aiSection.classList.remove('hidden'); 
+                        if(caseStudyAiAnalysisContainer) caseStudyAiAnalysisContainer.classList.add('hidden');
+                        if(caseStudyAiAnalysisContentEl) caseStudyAiAnalysisContentEl.innerHTML = "";
+                        modal.classList.remove('modal-inactive'); modal.classList.add('modal-active');
+                        if(closeModalButton) closeModalButton.focus();
+                    }
+                });
+            });
+            
+            analyzeCaseStudyButton.addEventListener('click', async () => {
+                if (!currentCaseStudyForAI) return;
+                if(caseStudyAiLoadingEl) caseStudyAiLoadingEl.classList.remove('hidden');
+                if(caseStudyAiAnalysisContentEl) caseStudyAiAnalysisContentEl.innerHTML = "";
+                if(caseStudyAiAnalysisContainer) caseStudyAiAnalysisContainer.classList.remove('hidden');
+                const prompt = `You are an AI assistant for Texas Law Enforcement Officers. Analyze the following case study and provide a concise analysis. Focus on identifying key ethical principles involved, potential courses of action and their ethical implications, and any relevant Texas legal considerations or best practices. Case Study Title: "${currentCaseStudyForAI.title}". Case Details: "${currentCaseStudyForAI.detailsRaw}". Original Discussion Points: "${currentCaseStudyForAI.discussionPointsHTML.replace(/<[^>]+>/g, ' ')}". Provide your analysis in a structured way.`;
+                const analysis = await callGeminiAPI(prompt);
+                if(caseStudyAiAnalysisContentEl) caseStudyAiAnalysisContentEl.innerHTML = analysis; 
+                if(caseStudyAiLoadingEl) caseStudyAiLoadingEl.classList.add('hidden');
+            });
+        }
+        
+        function closeModal() { if(modal) modal.classList.add('modal-inactive'); if(modal) modal.classList.remove('modal-active'); currentCaseStudyForAI = null; }
+        if(closeModalButton) closeModalButton.addEventListener('click', closeModal);
+        if(closeModalButtonFooter) closeModalButtonFooter.addEventListener('click', closeModal);
+        if(modal) { modal.addEventListener('click', (event) => { if (event.target === modal) { closeModal(); } }); }
+        document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && modal && modal.classList.contains('modal-active')) { closeModal(); } });
+
+        if(lawContainer && lawSearchInput) {
+            function renderTexasLawItems(filter = "") {
+                lawContainer.innerHTML = "";
+                const normalizedFilter = filter.toLowerCase().trim();
+                const filteredData = texasLawData.filter(item => 
+                    item.title.toLowerCase().includes(normalizedFilter) || 
+                    (item.summary && item.summary.toLowerCase().includes(normalizedFilter)) || 
+                    (item.keywords && item.keywords.toLowerCase().includes(normalizedFilter)) ||
+                    item.id.toLowerCase().includes(normalizedFilter)
+                );
+                if (filteredData.length === 0) { lawContainer.innerHTML = `<p class="text-slate-500 p-4 text-center">No Texas statutes match your search criteria.</p>`; return; }
+                filteredData.forEach(item => {
+                    const card = `
+                        <div id="${item.id.toLowerCase().replace(/\./g, '-')}" class="expandable-card border border-slate-300 rounded-xl shadow-sm overflow-hidden">
+                            <button class="w-full text-left p-4 sm:p-5 bg-slate-100 hover:bg-slate-200 focus-visible:bg-slate-200 rounded-t-xl focus:outline-none flex justify-between items-center transition-colors duration-200" aria-expanded="false" aria-controls="content-${item.id}">
+                               <div> <span class="font-semibold text-blue-700">${escapeHtml(item.title)}</span> <span class="text-xs text-slate-500 ml-2">(${escapeHtml(item.category)})</span> </div>
+                                <span class="arrow-icon text-blue-700 text-2xl transform" aria-hidden="true">&#9660;</span>
+                            </button>
+                            <div id="content-${item.id}" class="expandable-content px-4 sm:px-5 border-t border-slate-300 card-collapsed text-slate-700 bg-white rounded-b-xl">
+                                <p class="py-2 text-sm text-slate-600 leading-relaxed">${escapeHtml(item.summary)}</p>
+                                <a href="${escapeHtml(item.link)}" target="_blank" rel="noopener noreferrer" class="inline-block mt-2 mb-3 px-3 py-1 bg-sky-500 text-white text-xs font-medium rounded-md hover:bg-sky-600 transition-colors">View Full Statute (statutes.capitol.texas.gov) ↗</a>
+                                ${item.content ? `<pre class="py-2 whitespace-pre-wrap text-xs sm:text-sm leading-relaxed bg-slate-50 p-3 rounded-md">${escapeHtml(item.content)}</pre>` : ''}
+                            </div>
+                        </div>`;
+                    lawContainer.innerHTML += card;
+                });
+                addExpandableCardListeners(); 
+            }
+            lawSearchInput.addEventListener('input', (e) => renderTexasLawItems(e.target.value));
+            renderTexasLawItems(); 
+        }
+
+        if(scenariosContainer && scenarioScoreEl) {
+            scenariosContainer.innerHTML = ""; 
+            interactiveScenariosData.forEach(scenario => {
+                let choicesHtml = '';
+                scenario.choices.forEach((choice, index) => {
+                    choicesHtml += `<button data-points="${choice.points}" data-feedback="${escapeHtml(choice.feedback)}" class="scenario-choice block w-full md:w-auto md:inline-block mt-2 md:mt-0 md:mr-2 px-5 py-2.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-50 transition-all duration-200 shadow-md hover:shadow-lg">${escapeHtml(choice.text)}</button>`;
+                });
+                const scenarioDiv = `
+                    <div class="scenario p-5 sm:p-6 border border-slate-300 rounded-xl bg-slate-50 shadow-lg" id="${scenario.id}" role="region" aria-labelledby="scenario-title-${scenario.id}">
+                        <h4 id="scenario-title-${scenario.id}" class="text-lg sm:text-xl font-semibold text-blue-800 mb-3">${escapeHtml(scenario.title)}</h4>
+                        <p class="text-slate-600 mb-4 text-sm leading-relaxed">${escapeHtml(scenario.description)}</p>
+                        <div class="choices mb-4 space-y-2 sm:space-y-0 sm:space-x-2"> ${choicesHtml} </div>
+                        <div class="feedback-area hidden mt-3" role="alert"></div>
+                    </div>`;
+                scenariosContainer.innerHTML += scenarioDiv;
+            });
+            document.querySelectorAll('.scenario-choice').forEach(button => {
+                button.addEventListener('click', function() {
+                    const points = parseInt(this.dataset.points); const feedbackText = this.dataset.feedback; 
+                    const feedbackArea = this.closest('.scenario').querySelector('.feedback-area');
+                    currentScore += points; scenarioScoreEl.textContent = currentScore;
+                    let feedbackClass = 'feedback-neutral';
+                    if (points > 20) feedbackClass = 'feedback-correct'; else if (points <= 10) feedbackClass = 'feedback-incorrect';
+                    feedbackArea.innerHTML = `<div class="${feedbackClass} scenario-feedback text-sm"><p class="font-semibold mb-1">Feedback (+${points} pts):</p><p>${feedbackText}</p></div>`; 
+                    feedbackArea.classList.remove('hidden');
+                    this.closest('.choices').querySelectorAll('button').forEach(btn => { btn.disabled = true; btn.classList.add('opacity-60', 'cursor-not-allowed'); });
+                    this.classList.remove('opacity-60', 'cursor-not-allowed'); this.classList.add('ring-2', 'ring-amber-400', 'ring-offset-2', 'ring-offset-slate-50');
+                });
+            });
+        }
+        
+        if(generateAiScenarioButton) {
+            generateAiScenarioButton.addEventListener('click', async () => {
+                if(aiScenarioLoadingEl) aiScenarioLoadingEl.classList.remove('hidden');
+                if(aiGeneratedScenarioContentEl) aiGeneratedScenarioContentEl.innerHTML = "";
+                if(aiGeneratedScenarioContainer) aiGeneratedScenarioContainer.classList.remove('hidden');
+                const prompt = "You are an AI assistant for Texas Law Enforcement Officers. Generate a new, concise ethical scenario relevant to daily patrol duties in Texas. The scenario should present a clear ethical challenge. After the scenario description, provide 3-4 plausible but distinct courses of action an officer might consider (without indicating which is 'correct'). Finally, provide a brief 'AI Ethical Considerations' section discussing the key ethical principles at play in the scenario you generated. Keep the scenario and choices brief and to the point.";
+                const aiResponse = await callGeminiAPI(prompt);
+                if(aiGeneratedScenarioContentEl) aiGeneratedScenarioContentEl.innerHTML = aiResponse;
+                if(aiScenarioLoadingEl) aiScenarioLoadingEl.classList.add('hidden');
+            });
+        }
+
+        if(fieldGuidesContainer) {
+            fieldGuidesContainer.innerHTML = ""; 
+            fieldGuidesData.forEach(guide => {
+                 const card = `
+                    <div id="${guide.id.toLowerCase().replace(/\s+/g, '-')}" class="expandable-card border border-slate-300 rounded-xl shadow-sm overflow-hidden">
+                        <button class="w-full text-left p-4 sm:p-5 bg-slate-100 hover:bg-slate-200 focus-visible:bg-slate-200 rounded-t-xl focus:outline-none flex justify-between items-center transition-colors duration-200" aria-expanded="false" aria-controls="content-${guide.id}">
+                            <span class="font-semibold text-blue-700">${escapeHtml(guide.title)} <span class="text-xs text-slate-500">(${escapeHtml(guide.category)})</span></span>
+                            <span class="arrow-icon text-blue-700 text-2xl transform" aria-hidden="true">&#9660;</span>
+                        </button>
+                        <div id="content-${guide.id}" class="expandable-content px-4 sm:px-5 border-t border-slate-300 card-collapsed text-slate-700 bg-white rounded-b-xl">
+                            <div class="py-4 text-sm sm:text-base leading-relaxed prose prose-sm sm:prose-base max-w-none">${guide.content}</div>
+                        </div>
+                    </div>`;
+                fieldGuidesContainer.innerHTML += card;
+            });
+        }
+
+        if(wellnessContainer) {
+            wellnessContainer.innerHTML = ""; 
+            wellnessResourcesData.forEach(resource => {
+                 const card = `
+                    <div class="expandable-card border border-slate-300 rounded-xl shadow-sm overflow-hidden">
+                        <button class="w-full text-left p-4 sm:p-5 bg-slate-100 hover:bg-slate-200 focus-visible:bg-slate-200 rounded-t-xl focus:outline-none flex justify-between items-center transition-colors duration-200" aria-expanded="false" aria-controls="content-${resource.id}">
+                             <div> <span class="font-semibold text-md sm:text-lg text-blue-700">${escapeHtml(resource.title)}</span> <p class="text-sm font-normal text-slate-500 mt-0.5">${escapeHtml(resource.summary)}</p> </div>
+                            <span class="arrow-icon text-blue-700 text-2xl transform" aria-hidden="true">&#9660;</span>
+                        </button>
+                        <div id="content-${resource.id}" class="expandable-content px-4 sm:px-5 border-t border-slate-300 card-collapsed text-slate-700 bg-white rounded-b-xl">
+                            <div class="py-4 text-sm sm:text-base leading-relaxed prose prose-sm sm:prose-base max-w-none">${resource.details.replace(/\n/g, '<br>')}</div>
+                        </div>
+                    </div>`;
+                wellnessContainer.innerHTML += card;
+            });
+        }
+        
+        if(externalResourcesContainer) {
+            externalResourcesContainer.innerHTML = ""; 
+            externalResourcesData.forEach(resource => {
+                const listItem = `
+                    <li class="p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors duration-200 border border-slate-200 shadow-sm hover:shadow-md">
+                        <a href="${escapeHtml(resource.url)}" target="_blank" rel="noopener noreferrer" class="font-semibold text-blue-600 hover:text-blue-800 hover:underline focus:outline-none focus-visible:ring-1 focus-visible:ring-amber-500 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-50 rounded-sm">${escapeHtml(resource.name)} <span class="text-xs text-slate-400 font-normal" aria-hidden="true">↗</span></a>
+                        <p class="text-xs text-slate-500 mt-1 leading-relaxed">${escapeHtml(resource.description)}</p>
+                    </li>`;
+                externalResourcesContainer.innerHTML += listItem;
+            });
+        }
+        
+        function addExpandableCardListeners() {
+            document.querySelectorAll('.expandable-card button').forEach(button => {
+                if (button.dataset.listenerAttached === 'true') return;
+                button.dataset.listenerAttached = 'true';
+                button.addEventListener('click', () => {
+                    const content = button.nextElementSibling; const arrow = button.querySelector('.arrow-icon');
+                    const isCollapsed = content.classList.contains('card-collapsed');
+                    button.setAttribute('aria-expanded', String(!isCollapsed));
+                    if (isCollapsed) {
+                        content.classList.remove('card-collapsed', 'opacity-0', 'visibility-hidden');
+                        content.classList.add('card-expanded', 'opacity-100', 'visibility-visible');
+                        if(arrow) arrow.classList.add('rotate-180');
+                    } else {
+                        content.classList.remove('card-expanded', 'opacity-100', 'visibility-visible');
+                        content.classList.add('card-collapsed', 'opacity-0', 'visibility-hidden');
+                        if(arrow) arrow.classList.remove('rotate-180');
+                    }
+                });
+            });
+        }
+        addExpandableCardListeners(); 
+
+        window.navigateToSection = (sectionId, subId = null) => {
+            const sectionElement = document.getElementById(sectionId);
+            if (sectionElement) {
+                sectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                if (subId) {
+                    setTimeout(() => { 
+                        const subElementAnchor = document.getElementById(subId.toLowerCase().replace(/\./g, '-').replace(/\s+/g, '-'));
+                        const subElementDirect = document.getElementById(subId);
+                        const targetSubElement = subElementAnchor || subElementDirect;
+                        if (targetSubElement) {
+                            const expandableCard = targetSubElement.closest('.expandable-card');
+                            if (expandableCard) {
+                                const button = expandableCard.querySelector('button'); const content = button.nextElementSibling;
+                                if (content.classList.contains('card-collapsed')) { button.click(); }
+                                expandableCard.classList.add('ring-2', 'ring-amber-400', 'ring-offset-2', 'ring-offset-white', 'transition-all', 'duration-300');
+                                expandableCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                setTimeout(() => expandableCard.classList.remove('ring-2', 'ring-amber-400', 'ring-offset-2', 'ring-offset-white'), 3500);
+                            } else {
+                                targetSubElement.classList.add('ring-2', 'ring-amber-400', 'ring-offset-2', 'ring-offset-white', 'transition-all', 'duration-300');
+                                targetSubElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                setTimeout(() => targetSubElement.classList.remove('ring-2', 'ring-amber-400', 'ring-offset-2', 'ring-offset-white'), 3500);
+                            }
+                        }
+                    }, 750); 
+                }
+            };
+
+            // --- Auth UI Logic ---
+            if(registerButton) {
+                registerButton.addEventListener('click', async () => {
+                    const email = loginEmailInput.value;
+                    const password = loginPasswordInput.value;
+                    const name = loginNameInput.value.trim();
+                    if (!email || !password || !name) {
+                        if(authMessageEl) { authMessageEl.textContent = "Please fill in all fields."; authMessageEl.className = 'form-message error';}
+                        return;
+                    }
+                    if(authMessageEl) authMessageEl.textContent = "Registering..."; authMessageEl.className = 'form-message';
+                    try {
+                        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                        await updateProfile(userCredential.user, { displayName: name });
+                        // Create a basic profile document in Firestore
+                        await saveUserDataToFirestore({
+                            name: name,
+                            email: email,
+                            tcolePID: officerData.tcolePID, // Default or prompt for this later
+                            manuallyLoggedTrainings: [],
+                            currentUnit: officerData.currentUnit,
+                            createdAt: Timestamp.now()
+                        });
+                        if(authMessageEl) { authMessageEl.textContent = "Registration successful! Logging in..."; authMessageEl.className = 'form-message success';}
+                        // onAuthStateChanged will handle UI update
+                    } catch (error) {
+                        console.error("Registration error:", error);
+                        if(authMessageEl) { authMessageEl.textContent = `Registration failed: ${error.message}`; authMessageEl.className = 'form-message error';}
+                    }
+                });
+            }
+
+            if(loginButton) {
+                loginButton.addEventListener('click', async () => {
+                    const email = loginEmailInput.value;
+                    const password = loginPasswordInput.value;
+                    if (!email || !password) {
+                        if(authMessageEl) { authMessageEl.textContent = "Please enter email and password."; authMessageEl.className = 'form-message error';}
+                        return;
+                    }
+                    if(authMessageEl) authMessageEl.textContent = "Logging in..."; authMessageEl.className = 'form-message';
+                    try {
+                        await signInWithEmailAndPassword(auth, email, password);
+                        // onAuthStateChanged will handle UI update
+                        if(authMessageEl) authMessageEl.textContent = ""; // Clear message on successful login
+                    } catch (error) {
+                        console.error("Login error:", error);
+                        if(authMessageEl) { authMessageEl.textContent = `Login failed: ${error.message}`; authMessageEl.className = 'form-message error';}
+                    }
+                });
+            }
+
+            function performLogout() {
+                signOut(auth).catch(error => console.error("Logout error:", error));
+            }
+            if(logoutButton) logoutButton.addEventListener('click', performLogout);
+            if(mobileLogoutButton) mobileLogoutButton.addEventListener('click', performLogout);
+
+    </script>
+</body>
+</html>

@@ -3,272 +3,235 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ethical Badge - Texas LEO Professional Development Hub</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Ethical Decision-Making & De-escalation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/src/css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="src/css/style.css">
-    </head>
-<body class="bg-slate-100 text-slate-800 antialiased">
-
-    <div id="loginOverlay">
-        <div id="loginModal">
-            <div class="flex justify-center mb-6">
-                 <span class="text-6xl text-blue-600" aria-hidden="true">🛡️</span>
-            </div>
-            <h2 class="text-2xl font-bold mb-2 text-blue-700">Ethical Badge</h2>
-            <p class="text-sm text-slate-500 mb-6">Texas LEO Professional Hub</p>
-            
-            <input type="text" id="loginName" placeholder="Officer Name (e.g., Jane Doe)" class="w-full p-3 mb-3 border border-slate-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500">
-            <input type="email" id="loginEmail" placeholder="Email (e.g., jane.doe@agency.gov)" class="w-full p-3 mb-3 border border-slate-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500">
-            <input type="password" id="loginPassword" placeholder="Password (min. 6 characters)" class="w-full p-3 mb-4 border border-slate-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500">
-            <div class="flex space-x-3 justify-center">
-                <button id="loginButton" class="flex-1 px-5 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg">Login</button>
-                <button id="registerButton" class="flex-1 px-5 py-2.5 bg-green-600 text-white text-sm font-semibold rounded-lg hover:bg-green-700 transition-colors shadow-md hover:shadow-lg">Register</button>
-            </div>
-            <div id="authMessage" class="form-message mt-4"></div>
-        </div>
-    </div>
-
-    <header class="bg-blue-700 text-white shadow-xl fixed top-0 left-0 right-0 z-[150] hidden">
-        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-[72px] sm:h-[80px]">
-                <a href="#home" class="flex items-center focus:outline-none rounded-md py-2 group">
-                    <span class="text-3xl sm:text-4xl mr-2 sm:mr-3 text-amber-400 group-hover:text-amber-300 transition-colors" aria-hidden="true">🛡️</span>
-                    <div>
-                        <h1 class="text-lg sm:text-xl lg:text-2xl font-bold tracking-tight leading-tight group-hover:text-blue-100 transition-colors">Ethical Badge</h1>
-                        <p class="text-xs sm:text-sm font-normal text-blue-200 hidden md:block leading-tight group-hover:text-blue-100 transition-colors">Texas LEO Professional Hub</p>
-                    </div>
-                </a>
-                <nav class="hidden lg:flex items-center space-x-1 xl:space-x-2">
-                    <a href="#home" class="nav-item text-blue-100 hover:bg-blue-600 hover:text-white active:bg-blue-800 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-150">Home</a>
-                    <a href="#tcole-hub" class="nav-item text-blue-100 hover:bg-blue-600 hover:text-white active:bg-blue-800 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-150">TCOLE Hub</a>
-                    <a href="#ethical-core" class="nav-item text-blue-100 hover:bg-blue-600 hover:text-white active:bg-blue-800 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-150">Ethical Core</a>
-                    <a href="#texas-law" class="nav-item text-blue-100 hover:bg-blue-600 hover:text-white active:bg-blue-800 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-150">TX Law</a>
-                    <a href="#field-toolkit" class="nav-item text-blue-100 hover:bg-blue-600 hover:text-white active:bg-blue-800 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-150">Toolkit</a>
-                    <a href="#officer-wellness" class="nav-item text-blue-100 hover:bg-blue-600 hover:text-white active:bg-blue-800 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-150">Wellness</a>
-                    <a href="#resources" class="nav-item text-blue-100 hover:bg-blue-600 hover:text-white active:bg-blue-800 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-150">Resources</a>
-                </nav>
-                 <div class="hidden lg:flex items-center ml-4">
-                    <span id="headerOfficerName" class="text-xs text-blue-200 mr-3 hidden"></span>
-                    <button id="logoutButton" class="px-3 py-1.5 bg-red-600 text-white text-xs font-semibold rounded-md hover:bg-red-700 transition-colors shadow-sm hover:shadow-md">Logout</button>
-                </div>
-                <button id="mobileMenuButton" class="lg:hidden inline-flex items-center justify-center p-2 rounded-md text-blue-100 hover:bg-blue-600 focus:outline-none" aria-expanded="false" aria-controls="mobileMenu" aria-label="Toggle mobile menu">
-                    <span class="sr-only">Open main menu</span>
-                    <span class="menu-icon-open block h-7 w-7" aria-hidden="true">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-full h-full">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-                        </svg>
-                    </span>
-                    <span class="menu-icon-close hidden h-7 w-7" aria-hidden="true">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-full h-full">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </span>
-                </button>
-            </div>
-        </div>
-        <div id="mobileMenu" class="lg:hidden shadow-2xl w-full z-[140]">
-            <div class="px-3 pt-3 pb-4 space-y-2">
-                <a href="#home" class="nav-item text-blue-50 block hover:bg-blue-500 hover:text-white active:bg-blue-700 px-4 py-3 rounded-lg text-base font-semibold transition-colors duration-150 flex items-center"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 mr-3"><path fill-rule="evenodd" d="M9.293 2.293a1 1 0 0 1 1.414 0l7 7A1 1 0 0 1 17 10.707V17.5a1.5 1.5 0 0 1-1.5 1.5h-3.75a.75.75 0 0 1-.75-.75V14.5a.5.5 0 0 0-.5-.5h-2.5a.5.5 0 0 0-.5.5v3.75a.75.75 0 0 1-.75.75H3.5A1.5 1.5 0 0 1 2 17.5v-6.793a1 1 0 0 1 .293-.707l7-7Z" clip-rule="evenodd" /></svg>Home</a>
-                <a href="#tcole-hub" class="nav-item text-blue-50 block hover:bg-blue-500 hover:text-white active:bg-blue-700 px-4 py-3 rounded-lg text-base font-semibold transition-colors duration-150 flex items-center"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 mr-3"><path d="M11.983 1.904a3.003 3.003 0 0 0-4.002-.001L3.118 5.655A3 3 0 0 0 2 8.227V14.5A1.5 1.5 0 0 0 3.5 16h13a1.5 1.5 0 0 0 1.5-1.5V8.227a3 3 0 0 0-1.118-2.572L11.983 1.904ZM10 9a.75.75 0 0 1 .75.75v2.5a.75.75 0 0 1-1.5 0v-2.5A.75.75 0 0 1 10 9Z" /></svg>TCOLE Hub</a>
-                <a href="#ethical-core" class="nav-item text-blue-50 block hover:bg-blue-500 hover:text-white active:bg-blue-700 px-4 py-3 rounded-lg text-base font-semibold transition-colors duration-150 flex items-center"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 mr-3"><path fill-rule="evenodd" d="M10 2c-1.717 0-3.28.595-4.545 1.615S3 6.152 3 7.887v5.226c0 1.734.84 3.272 2.455 4.272S9.283 19 10 19c.717 0 2.28-.595 3.545-1.615S16 14.848 16 13.113V7.887c0-1.734-.84-3.272-2.455-4.272S10.717 2 10 2Zm0 1.5a4.123 4.123 0 0 0-1.262.285A5.46 5.46 0 0 0 6.04 5.194a5.46 5.46 0 0 0-1.395 2.693V10c0 .17.006.338.017.504l.08.975a.75.75 0 0 0 .653.646c.247.03.4.045.7.045h6.092c.3 0 .454-.015.7-.045a.75.75 0 0 0 .654-.646l.079-.975A4.122 4.122 0 0 0 14 10V7.887a5.46 5.46 0 0 0-1.395-2.693 5.46 5.46 0 0 0-2.702-1.395A4.123 4.123 0 0 0 10 3.5Z" clip-rule="evenodd" /></svg>Ethical Core</a>
-                <a href="#texas-law" class="nav-item text-blue-50 block hover:bg-blue-500 hover:text-white active:bg-blue-700 px-4 py-3 rounded-lg text-base font-semibold transition-colors duration-150 flex items-center"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 mr-3"><path d="M10.75 10.84V12a.75.75 0 0 1-1.5 0V10.84L8.28 9.22A.75.75 0 0 1 9 8h2a.75.75 0 0 1 .72.78l-.03.221-1.027 3.422A2.25 2.25 0 0 0 12.75 14H14.5a.75.75 0 0 1 0 1.5h-1.75a3.75 3.75 0 0 1-3.655-2.746L7.503 8.5H4.75A.75.75 0 0 1 4 7.75V6.5a.75.75 0 0 1 .75-.75h3.259c1.053 0 2.022.346 2.771.952L12.6 7.9A.75.75 0 0 1 14 7.75V6.5a.75.75 0 0 1 .75-.75h.5a.75.75 0 0 1 .75.75v1.25a.75.75 0 0 1-1.08.707l-1.82-1.213A2.25 2.25 0 0 0 10.75 6.5H8.553l1.27 4.22a.75.75 0 0 1-1.44.434L7.16 7.73A3.75 3.75 0 0 1 10.75 5h2.508a2.25 2.25 0 0 0 1.801-1.023A.75.75 0 0 1 15.81 3H16a.75.75 0 0 1 .75.75v.209A2.25 2.25 0 0 0 15.008 6H14a.75.75 0 0 1-.75-.75V4.852l-1.086.724a.75.75 0 0 1-1.028-.939l1.5-2.5A.75.75 0 0 1 13.508 2H10A2.25 2.25 0 0 0 7.95 3.57L6.219 8.89A2.25 2.25 0 0 0 4.326 10H3.5a.75.75 0 0 1-.75-.75V8.504a.75.75 0 0 1 .64-.742L5.582 7.5H6.5a.75.75 0 0 1 .75.75v.335L6.028 10.84A3.75 3.75 0 0 1 2.25 14H1.5a.75.75 0 0 1 0-1.5h.75A2.25 2.25 0 0 0 4.219 11H5.45l1.23 4.11A.75.75 0 0 1 6 15.75V17a.75.75 0 0 1-1.5 0v-1.25a.75.75 0 0 1 .276-1.48l1.531-.766A2.25 2.25 0 0 0 9.25 12.5h1.5a2.25 2.25 0 0 0 2.234-1.84Z" /></svg>TX Law & Policy</a>
-                <a href="#field-toolkit" class="nav-item text-blue-50 block hover:bg-blue-500 hover:text-white active:bg-blue-700 px-4 py-3 rounded-lg text-base font-semibold transition-colors duration-150 flex items-center"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 mr-3"><path fill-rule="evenodd" d="M2.878 3.144A1.5 1.5 0 0 0 1.122 4.856v10.288c0 .76.525 1.402 1.25 1.623a1.5 1.5 0 0 0 1.83-.828l2.006-4.013a1.5 1.5 0 0 1 .707-1.833l4.013-2.006a1.5 1.5 0 0 0 .828-1.83 1.5 1.5 0 0 0-1.623-1.25H4.856A1.5 1.5 0 0 0 2.878 3.144ZM12.5 10a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" clip-rule="evenodd" /><path d="M13.5 11.5a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Z" /></svg>Field Toolkit</a>
-                <a href="#officer-wellness" class="nav-item text-blue-50 block hover:bg-blue-500 hover:text-white active:bg-blue-700 px-4 py-3 rounded-lg text-base font-semibold transition-colors duration-150 flex items-center"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 mr-3"><path d="m9.653 16.915-.005-.003-.019-.01a20.759 20.759 0 0 1-1.162-.682 22.045 22.045 0 0 1-2.582-1.9C4.045 12.733 2 10.352 2 7.5a4.5 4.5 0 0 1 8-2.828A4.5 4.5 0 0 1 18 7.5c0 2.852-2.044 5.233-3.885 6.82a22.049 22.049 0 0 1-3.744 2.582l-.019.01-.005.003h-.002a.739.739 0 0 1-.69.001l-.002-.001ZM10 7.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" /></svg>Officer Wellness</a>
-                <a href="#resources" class="nav-item text-blue-50 block hover:bg-blue-500 hover:text-white active:bg-blue-700 px-4 py-3 rounded-lg text-base font-semibold transition-colors duration-150 flex items-center"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 mr-3"><path d="M12.232 4.232a2.5 2.5 0 0 1 3.536 3.536l-1.225 1.224a.75.75 0 0 0 1.061 1.06l1.224-1.224a4 4 0 0 0-5.656-5.656l-3 3a4 4 0 0 0 .225 5.865.75.75 0 0 0 .977-1.138 2.5 2.5 0 0 1-.142-3.665l3-3Z" /><path d="M8.603 17.397a.75.75 0 0 0-.977 1.138 4 4 0 0 0 5.656-5.656l-1.224-1.224a.75.75 0 0 0-1.061-1.06l-1.224 1.224a2.5 2.5 0 0 1-3.536-3.536l3-3a2.5 2.5 0 0 1 3.536 3.536l.007.007a.75.75 0 0 0 1.06-1.06l-.007-.007a4 4 0 0 0-5.656-5.656l-3 3a4 4 0 0 0-.225 5.865Z" /></svg>Resources</a>
-                <button id="mobileLogoutButton" class="w-full mt-3 px-4 py-3 bg-red-500 text-white text-base font-semibold rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 mr-2"><path fill-rule="evenodd" d="M3 4.25A2.25 2.25 0 0 1 5.25 2h5.5A2.25 2.25 0 0 1 13 4.25v2a.75.75 0 0 1-1.5 0v-2A.75.75 0 0 0 10.75 3h-5.5A.75.75 0 0 0 4.5 4.25v11.5c0 .414.336.75.75.75h5.5a.75.75 0 0 0 .75-.75v-2a.75.75 0 0 1 1.5 0v2A2.25 2.25 0 0 1 10.75 18h-5.5A2.25 2.25 0 0 1 3 15.75V4.25Z" clip-rule="evenodd" /><path fill-rule="evenodd" d="M6 10a.75.75 0 0 1 .75-.75h9.546l-1.048-.943a.75.75 0 1 1 1.004-1.114l2.5 2.25a.75.75 0 0 1 0 1.114l-2.5 2.25a.75.75 0 1 1-1.004-1.114l1.048-.943H6.75A.75.75 0 0 1 6 10Z" clip-rule="evenodd" /></svg>Logout</button>
-            </div>
-        </div>
+    <script type="module" src="/src/js/main.js" defer></script>
+</head>
+<body>
+    <header class="bg-blue-800 text-white p-4 shadow-md sticky top-0 z-50 flex justify-between items-center">
+        <h1 class="text-xl font-semibold">Ethical Decision-Making & De-escalation</h1>
+        <nav>
+            <ul class="flex space-x-4">
+                <li><a href="#introduction" class="hover:bg-blue-600 p-2 rounded-md active">Introduction</a></li>
+                <li><a href="#core-principles" class="hover:bg-blue-600 p-2 rounded-md">Core Principles</a></li>
+                <li><a href="#decision-model" class="hover:bg-blue-600 p-2 rounded-md">Decision Model</a></li>
+                <li><a href="#de-escalation" class="hover:bg-blue-600 p-2 rounded-md">De-escalation</a></li>
+                <li><a href="#scenarios" class="hover:bg-blue-600 p-2 rounded-md">Scenarios</a></li>
+                <li><a href="#resources" class="hover:bg-blue-600 p-2 rounded-md">Resources</a></li>
+            </ul>
+        </nav>
     </header>
 
-    <main class="pt-[72px] sm:pt-24 container mx-auto px-3 sm:px-4 lg:px-6 hidden">
-        <section id="home" class="content-section py-8 sm:py-10 lg:py-12">
-            <div class="bg-white p-5 sm:p-6 lg:p-8 rounded-xl shadow-2xl">
-                <div class="flex flex-col md:flex-row justify-between items-center mb-6 sm:mb-8 pb-5 border-b border-slate-300">
-                    <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-blue-700 mb-3 md:mb-0">Officer Dashboard</h2>
-                    <div class="text-sm text-slate-500">Welcome, Officer <span id="officerNamePlaceholder" class="font-semibold text-blue-600"></span>!</div>
+    <main class="p-6 max-w-4xl mx-auto">
+        <section id="introduction" class="content-section bg-white p-6 mb-6 rounded-lg shadow">
+            <h2 class="text-xl font-semibold text-blue-800 mb-4 border-b-2 border-blue-100 pb-2">Welcome, Officer!</h2>
+            <p class="mb-4">This interactive guide is designed to enhance your understanding of ethical decision-making and de-escalation techniques. As law enforcement professionals, the choices you make in high-pressure situations have profound impacts. This platform provides a framework and resources to support you in making sound, ethical, and effective decisions.</p>
+            <div class="card bg-gray-50 border border-gray-200 rounded-md p-4">
+                <h3 class="text-lg font-medium mb-2">Key Objectives:</h3>
+                <ul class="list-disc pl-5 space-y-1">
+                    <li>Understand the foundations of ethical policing.</li>
+                    <li>Learn and apply a practical ethical decision-making model.</li>
+                    <li>Master de-escalation communication and tactics.</li>
+                    <li>Practice through realistic scenarios.</li>
+                    <li>Access relevant laws, policies, and support resources.</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="core-principles" class="content-section bg-white p-6 mb-6 rounded-lg shadow">
+            <h2 class="text-xl font-semibold text-blue-800 mb-4 border-b-2 border-blue-100 pb-2">Core Principles of Ethical Policing</h2>
+            <p class="mb-4">Ethical conduct in law enforcement is built upon a foundation of core principles that guide every action and decision. These principles are not just abstract ideals but practical necessities for maintaining public trust and legitimacy.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div class="card bg-gray-50 border border-gray-200 rounded-md p-4">
+                    <h3 class="text-lg font-medium mb-2">Integrity</h3>
+                    <p>Acting with honesty, fairness, and upholding moral principles even when it\'s difficult. This includes being truthful in reports, testimony, and interactions with the public and colleagues.</p>
                 </div>
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
-                    <div class="lg:col-span-1 bg-slate-50 p-5 rounded-xl shadow-lg border border-slate-200">
-                        <h3 class="text-lg sm:text-xl font-semibold text-slate-700 mb-3 text-center">TCOLE Compliance</h3>
-                        <p class="text-xs text-slate-500 mb-2 text-center">Unit: <span id="tcoleUnitDates"></span></p>
-                        <div class="chart-container mx-auto mb-4"><canvas id="tcoleProgressChart" aria-label="TCOLE Compliance Progress Chart"></canvas></div>
-                        <div class="text-center">
-                            <p class="text-sm text-slate-600 mb-1"><span id="completedHours" class="font-bold text-blue-600 text-lg">0</span> / <span id="requiredHours" class="font-bold text-slate-700 text-lg">40</span> hours</p>
-                            <p class="text-xs text-slate-500 mb-3">Completed (Manually Tracked)</p>
-                            <button onclick="window.navigateToSection('tcole-hub')" class="px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg focus-visible:ring-offset-slate-50">Update TCOLE Log</button>
-                        </div>
-                    </div>
-                    <div class="lg:col-span-2 bg-slate-50 p-5 rounded-xl shadow-lg border border-slate-200">
-                        <h3 class="text-lg sm:text-xl font-semibold text-slate-700 mb-4">Latest Texas Legal Updates</h3>
-                        <div id="legalUpdatesFeed" class="space-y-4 max-h-96 overflow-y-auto pr-2 modal-body-scrollable"></div>
-                        <button class="mt-4 px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg focus-visible:ring-offset-slate-50" onclick="window.navigateToSection('texas-law')">More Legal Updates</button>
-                    </div>
+                <div class="card bg-gray-50 border border-gray-200 rounded-md p-4">
+                    <h3 class="text-lg font-medium mb-2">Respect</h3>
+                    <p>Treating all individuals with dignity, courtesy, and empathy, regardless of their background, circumstances, or behavior. Recognizing and upholding the constitutional rights of all persons.</p>
                 </div>
-                <div class="mt-8 sm:mt-10 grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
-                    <div class="bg-slate-50 p-5 rounded-xl shadow-lg border border-slate-200">
-                        <h3 class="text-lg sm:text-xl font-semibold text-slate-700 mb-3">Dilemma of the Week <span class="text-amber-500 font-medium">(Texas Focus)</span></h3>
-                        <p id="dilemmaOfTheWeekText" class="mb-3 text-sm text-slate-600 leading-relaxed"></p>
-                        <ol id="dilemmaOptions" class="list-decimal list-inside space-y-1.5 text-xs text-slate-500 mb-3"></ol>
-                        <div class="mt-3"><button id="analyzeDilemmaButton" class="px-4 py-2 bg-sky-500 text-white text-xs font-medium rounded-lg hover:bg-sky-600 transition-colors shadow hover:shadow-md focus-visible:ring-offset-slate-50 flex items-center justify-center"><span class="mr-2">✨</span>AI Discussion Points</button></div>
-                        <div id="dilemmaAiAnalysisContainer" class="ai-analysis-container mt-3 hidden">
-                            <h5 class="font-semibold text-sm text-slate-700 mb-1">AI Generated Discussion Points:</h5>
-                            <div id="dilemmaAiAnalysisContent" class="text-xs text-slate-600 leading-relaxed prose prose-xs max-w-none"></div>
-                            <div id="dilemmaAiLoading" class="loading-spinner hidden"></div>
-                        </div>
-                        <a href="#ethical-core" onclick="window.navigateToSection('ethical-core', 'cs1')" class="text-sm text-blue-600 hover:underline font-medium focus-visible:ring-offset-slate-50 mt-3 inline-block">Compare with Case Studies &raquo;</a>
-                    </div>
-                    <div class="bg-slate-50 p-5 rounded-xl shadow-lg border border-slate-200">
-                        <h3 class="text-lg sm:text-xl font-semibold text-slate-700 mb-4">Quick Toolkit Access</h3>
-                        <div class="grid grid-cols-2 gap-3 sm:gap-4">
-                            <button onclick="window.navigateToSection('texas-law', 'pc3103')" class="quick-link-btn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path d="M3.5 2A1.5 1.5 0 0 0 2 3.5v13A1.5 1.5 0 0 0 3.5 18h13a1.5 1.5 0 0 0 1.5-1.5v-13A1.5 1.5 0 0 0 16.5 2h-13Zm1.75 1.5a.75.75 0 0 0 0 1.5h9.5a.75.75 0 0 0 0-1.5h-9.5Zm0 3.5a.75.75 0 0 0 0 1.5h5.5a.75.75 0 0 0 0-1.5h-5.5Z" /></svg>TX Penal Code</button>
-                            <button onclick="window.navigateToSection('texas-law', 'ccp1401')" class="quick-link-btn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path d="M3.5 2A1.5 1.5 0 0 0 2 3.5v13A1.5 1.5 0 0 0 3.5 18h13a1.5 1.5 0 0 0 1.5-1.5v-13A1.5 1.5 0 0 0 16.5 2h-13Zm1.75 1.5a.75.75 0 0 0 0 1.5h9.5a.75.75 0 0 0 0-1.5h-9.5Zm0 3.5a.75.75 0 0 0 0 1.5h5.5a.75.75 0 0 0 0-1.5h-5.5Z" /></svg>TX CCP</button>
-                            <button onclick="window.navigateToSection('field-toolkit', 'sfst-guide')" class="quick-link-btn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-11.25a.75.75 0 0 0-1.5 0v2.5h-2.5a.75.75 0 0 0 0 1.5h2.5v2.5a.75.75 0 0 0 1.5 0v-2.5h2.5a.75.75 0 0 0 0-1.5h-2.5v-2.5Z" clip-rule="evenodd" /></svg>SFST Guide</button>
-                            <button onclick="window.navigateToSection('field-toolkit', 'miranda-guide')" class="quick-link-btn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path d="M3.508 2.25A2.25 2.25 0 0 0 1.25 4.5v11A2.25 2.25 0 0 0 3.508 17.75h12.984A2.25 2.25 0 0 0 18.75 15.5V4.5A2.25 2.25 0 0 0 16.492 2.25H3.508ZM2.75 6A.75.75 0 0 1 3.5 5.25h13a.75.75 0 0 1 0 1.5h-13A.75.75 0 0 1 2.75 6Zm0 4A.75.75 0 0 1 3.5 9.25h13a.75.75 0 0 1 0 1.5h-13A.75.75 0 0 1 2.75 10Zm0 4A.75.75 0 0 1 3.5 13.25h13a.75.75 0 0 1 0 1.5h-13a.75.75 0 0 1-.75-.75Z" /></svg>Miranda Warnings</button>
-                        </div>
-                    </div>
+                <div class="card bg-gray-50 border border-gray-200 rounded-md p-4">
+                    <h3 class="text-lg font-medium mb-2">Fairness & Impartiality</h3>
+                    <p>Making decisions and taking actions based on objective criteria, free from personal biases, prejudices, or favoritism. Applying laws and policies consistently and equitably.</p>
+                </div>
+                <div class="card bg-gray-50 border border-gray-200 rounded-md p-4">
+                    <h3 class="text-lg font-medium mb-2">Accountability</h3>
+                    <p>Taking responsibility for one\'s actions and decisions. Being answerable to the community, the agency, and the law. This includes transparency in operations and a willingness to address misconduct.</p>
+                </div>
+                <div class="card bg-gray-50 border border-gray-200 rounded-md p-4">
+                    <h3 class="text-lg font-medium mb-2">Courage</h3>
+                    <p>Both physical courage to face dangerous situations and moral courage to do what is right, even in the face of opposition, peer pressure, or potential negative consequences.</p>
+                </div>
+                <div class="card bg-gray-50 border border-gray-200 rounded-md p-4">
+                    <h3 class="text-lg font-medium mb-2">Professionalism</h3>
+                    <p>Maintaining a high standard of conduct, competence, and appearance. Committing to continuous learning, skill development, and adherence to agency policies and best practices.</p>
                 </div>
             </div>
         </section>
 
-        <section id="tcole-hub" class="content-section py-8 sm:py-10 lg:py-12">
-            <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold mb-6 sm:mb-8 text-blue-700">TCOLE Hub & Compliance</h2>
-            <div class="bg-white p-5 sm:p-6 lg:p-8 rounded-xl shadow-2xl">
-                <p class="mb-6 text-slate-600 leading-relaxed">Manually track your TCOLE requirements and log completed courses. This information is conceptually saved to your user profile via Firebase Firestore for this session and is not a substitute for official TCOLE records or agency reporting.</p>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 mb-8 sm:mb-10">
-                    <div class="bg-slate-50 p-5 rounded-lg shadow border border-slate-200">
-                        <h3 class="text-lg sm:text-xl font-semibold text-slate-700 mb-4">My TCOLE Profile (Local Tracking)</h3>
-                        <div class="space-y-3 text-sm">
-                            <p><strong>PID (Example):</strong> <input type="text" value="123456" class="p-2 border border-slate-300 rounded-md bg-slate-100 w-full sm:w-auto" readonly aria-label="TCOLE PID"></p>
-                            <p><strong>Current Unit:</strong> <span id="tcoleHubUnitDates" class="font-medium"></span></p>
-                            <p><strong>Total Hours Required:</strong> <span id="tcoleHubRequiredHours" class="font-medium">40</span></p>
-                            <p><strong>Hours Logged (This Session):</strong> <span id="tcoleHubLoggedHours" class="font-medium text-blue-600">0</span></p>
-                            <div class="progress-bar-bg mt-2"><div id="tcoleHubProgressBar" class="progress-bar-fill" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div></div>
-                        </div>
+        <section id="decision-model" class="content-section bg-white p-6 mb-6 rounded-lg shadow">
+            <h2 class="text-xl font-semibold text-blue-800 mb-4 border-b-2 border-blue-100 pb-2">Ethical Decision-Making Model (A.C.T.)</h2>
+            <p class="mb-4">A simple yet effective model to guide your decision-making process in challenging situations:</p>
+            <div class="card bg-gray-50 border border-gray-200 rounded-md p-4 mb-4">
+                <h3 class="text-lg font-medium mb-2">A - Assess the Situation</h3>
+                <ul class="list-disc pl-5 space-y-1">
+                    <li><strong>Identify the ethical dilemma:</strong> What makes this situation ethically challenging?</li>
+                    <li><strong>Gather all facts:</strong> What do you know? What do you need to find out?</li>
+                    <li><strong>Consider your legal authority and agency policy:</strong> What are your powers and limitations?</li>
+                    <li><strong>Identify stakeholders:</strong> Who will be affected by your decision (victim, suspect, community, agency, yourself)?</li>
+                </ul>
+            </div>
+            <div class="card bg-gray-50 border border-gray-200 rounded-md p-4 mb-4">
+                <h3 class="text-lg font-medium mb-2">C - Consider Your Options</h3>
+                <ul class="list-disc pl-5 space-y-1">
+                    <li><strong>Brainstorm potential actions:</strong> What are all possible courses of action, including tactical and communication strategies?</li>
+                    <li><strong>Evaluate each option against core principles:</strong> Is it legal? Is it ethical (fair, respectful, honest)? Is it consistent with agency policy?</li>
+                    <li><strong>Consider potential consequences (short-term and long-term) for each option:</strong> What are the likely outcomes for all stakeholders?</li>
+                    <li><strong>Consult if possible:</strong> Can you discuss with a supervisor or trusted peer (if time and situation permit)?</li>
+                </ul>
+            </div>
+            <div class="card bg-gray-50 border border-gray-200 rounded-md p-4">
+                <h3 class="text-lg font-medium mb-2">T - Take Action & Reflect</h3>
+                <ul class="list-disc pl-5 space-y-1">
+                    <li><strong>Choose the most ethical and effective option:</strong> Select the action that best aligns with legal requirements, ethical principles, and agency policy, while aiming for the best possible outcome.</li>
+                    <li><strong>Act decisively and professionally:</strong> Implement your chosen course of action.</li>
+                    <li><strong>Document your actions and reasoning:</strong> Clearly articulate why you made the decision you did.</li>
+                    <li><strong>Reflect on the outcome:</strong> After the situation, review your actions. What went well? What could be improved? What did you learn?</li>
+                </ul>
+            </div>
+            <a href="#" class="btn mt-4 inline-block bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700">Download A.C.T. Model Quick Guide (PDF)</a>
+        </section>
+
+        <section id="de-escalation" class="content-section bg-white p-6 mb-6 rounded-lg shadow">
+            <h2 class="text-xl font-semibold text-blue-800 mb-4 border-b-2 border-blue-100 pb-2">De-escalation Techniques</h2>
+            <p class="mb-4">De-escalation is a critical skill to reduce tension, gain voluntary compliance, and prevent situations from becoming violent. It involves strategic communication and tactical awareness.</p>
+            
+            <div class="card bg-gray-50 border border-gray-200 rounded-md p-4 mb-4">
+                <h3 class="text-lg font-medium mb-2">Key Communication Skills:</h3>
+                <ul class="list-disc pl-5 space-y-1">
+                    <li><strong>Active Listening:</strong> Pay full attention, show understanding (nod, "I see"), and summarize what the person is saying.</li>
+                    <li><strong>Empathy:</strong> Try to understand the person\'s perspective and feelings, even if you don\'t agree with them. ("I understand you\'re frustrated.")</li>
+                    <li><strong>Verbal Judo / Tactical Empathy:</strong> Redirecting behavior with words, using professional language, and showing respect to gain cooperation.</li>
+                    <li><strong>Clear & Calm Communication:</strong> Speak slowly, clearly, and in a calm, confident tone. Avoid jargon or inflammatory language.</li>
+                    <li><strong>Non-Verbal Communication:</strong> Maintain open body language, appropriate eye contact (not staring), and a safe distance (reactionary gap).</li>
+                </ul>
+            </div>
+
+            <div class="card bg-gray-50 border border-gray-200 rounded-md p-4">
+                <h3 class="text-lg font-medium mb-2">Tactical Considerations:</h3>
+                <ul class="list-disc pl-5 space-y-1">
+                    <li><strong>Assess Risk:</strong> Continuously evaluate the person\'s behavior, potential threats, and the environment.</li>
+                    <li><strong>Time & Distance:</strong> Use time to your advantage to de-escalate. Maintain a safe distance to allow for reaction.</li>
+                    <li><strong>Teamwork:</strong> Communicate with fellow officers. Designate a primary contact officer if possible.</li>
+                    <li><strong>Control the Environment:</strong> If possible, move to a quieter, safer location. Remove distractions or agitating influences.</li>
+                    <li><strong>Know Your Options:</strong> Be prepared to transition to other tactics if de-escalation is not working or if the threat level increases.</li>
+                </ul>
+            </div>
+            <a href="#" class="btn mt-4 inline-block bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700">Watch De-escalation Training Video</a>
+        </section>
+
+        <section id="scenarios" class="content-section bg-white p-6 mb-6 rounded-lg shadow">
+            <h2 class="text-xl font-semibold text-blue-800 mb-4 border-b-2 border-blue-100 pb-2">Interactive Scenarios</h2>
+            <p class="mb-4">Test your knowledge and decision-making skills with these interactive scenarios. Choose the best course of action based on ethical principles and de-escalation techniques.</p>
+            
+            <div class="card scenario bg-gray-50 border border-gray-200 rounded-md p-4 mb-4">
+                <h3 class="text-lg font-medium mb-2">Scenario 1: The Noise Complaint</h3>
+                <p class="mb-2">You respond to a late-night noise complaint at an apartment complex. The resident is angry, claims they are being harassed by the neighbor who called, and refuses to turn down their music. They are not aggressive but are clearly agitated.</p>
+                <p class="mb-2"><strong>What is your initial approach?</strong></p>
+                <form data-scenario-id="noiseComplaint">
+                    <div class="mb-2">
+                        <input type="radio" id="s1o1" name="scenario1" value="threaten" class="mr-2">
+                        <label for="s1o1">Immediately threaten arrest if they don\'t comply.</label>
                     </div>
-                    <div class="bg-slate-50 p-5 rounded-lg shadow border border-slate-200">
-                        <h3 class="text-lg sm:text-xl font-semibold text-slate-700 mb-4">Log Training (Manual Entry)</h3>
-                         <div class="space-y-3 text-sm">
-                            <label for="tcoleCourseName" class="block font-medium text-slate-700">Course Name/Number:</label>
-                            <input type="text" id="tcoleCourseName" placeholder="e.g., Legislative Update #3188" class="w-full p-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
-                            <label for="tcoleCourseHours" class="block font-medium text-slate-700">Hours Completed:</label>
-                            <input type="number" id="tcoleCourseHours" placeholder="e.g., 4" class="w-full p-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
-                            <button id="logTcoleTrainingButton" class="w-full px-5 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium shadow hover:shadow-md">Log Training Hours</button>
-                        </div>
+                    <div class="mb-2">
+                        <input type="radio" id="s1o2" name="scenario1" value="listen" class="mr-2">
+                        <label for="s1o2">Listen to their concerns, explain the complaint, and calmly request they lower the music.</label>
                     </div>
-                </div>
-                <h3 class="text-lg sm:text-xl font-semibold text-slate-700 mb-5">Mandatory Training Topics (Current Cycle)</h3>
-                <p class="text-xs text-slate-500 mb-4">Mark topics as complete by clicking the button. This is for your personal tracking.</p>
-                <div id="tcoleMandatesList" class="space-y-4"></div>
-                <p class="mt-8 text-xs text-slate-500 italic">Disclaimer: Always verify official TCOLE requirements through the TCOLE website or your agency's training coordinator. This tool is for personal tracking assistance only.</p>
-            </div>
-        </section>
-
-        <section id="ethical-core" class="content-section py-8 sm:py-10 lg:py-12">
-            <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold mb-6 sm:mb-8 text-blue-700">Ethical Core: Principles & Case Studies</h2>
-            <div class="bg-white p-5 sm:p-6 lg:p-8 rounded-xl shadow-2xl mb-8 sm:mb-10">
-                <h3 class="text-xl sm:text-2xl font-semibold text-slate-700 mb-4">Fundamental Ethical Principles</h3>
-                <p class="mb-6 text-slate-600 leading-relaxed">Understanding these principles is key to upholding public trust. Click each to learn more.</p>
-                <div id="principlesContainer" class="space-y-4"></div>
-            </div>
-            <div class="bg-white p-5 sm:p-6 lg:p-8 rounded-xl shadow-2xl">
-                <h3 class="text-xl sm:text-2xl font-semibold text-slate-700 mb-4">Ethical Case Studies (Texas Context)</h3>
-                <p class="mb-6 text-slate-600 leading-relaxed">Analyze real-world and hypothetical scenarios. Click a case for details and AI-powered analysis.</p>
-                <div id="caseStudiesContainer" class="grid grid-cols-1 md:grid-cols-2 gap-5"></div>
-            </div>
-        </section>
-
-        <section id="texas-law" class="content-section py-8 sm:py-10 lg:py-12">
-            <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold mb-6 sm:mb-8 text-blue-700">Texas Law & Policy Reference</h2>
-            <div class="bg-white p-5 sm:p-6 lg:p-8 rounded-xl shadow-2xl">
-                <p class="mb-2 text-slate-600 leading-relaxed">Access key Texas statutes. Use the search to quickly find relevant sections. Full text is available via direct links to the official Texas Statutes website.</p>
-                <p class="text-xs text-slate-500 mb-5">Content summaries are for quick reference; always consult the full official statute for legal application.</p>
-                <div class="relative mb-6 sm:mb-8">
-                    <input type="text" id="lawSearchInput" placeholder="Search Texas codes (e.g., 'Theft', 'Sec. 31.03', 'Art. 14.01')..." class="w-full p-3 pl-10 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm text-sm" aria-label="Search Texas Law">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none" aria-hidden="true"><span class="text-slate-400 text-lg">🔍</span></div>
-                </div>
-                <div id="texasLawContainer" class="space-y-3"></div>
-            </div>
-        </section>
-
-        <section id="field-toolkit" class="content-section py-8 sm:py-10 lg:py-12">
-            <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold mb-6 sm:mb-8 text-blue-700">Field Toolkit: Scenarios & Guides</h2>
-            <div class="bg-white p-5 sm:p-6 lg:p-8 rounded-xl shadow-2xl mb-8 sm:mb-10">
-                <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4">
-                    <div>
-                        <h3 class="text-xl sm:text-2xl font-semibold text-slate-700 mb-1 sm:mb-2">Interactive Ethical Scenarios</h3>
-                        <p class="text-slate-600 text-sm mb-1">Test your decision-making. Current Score: <span id="scenarioScore" class="font-bold text-amber-600 text-lg">0</span> points.</p>
-                        <p class="text-xs text-slate-500 mb-2 sm:mb-0">Each correct choice earns points. Review feedback to learn.</p>
+                    <div class="mb-2">
+                        <input type="radio" id="s1o3" name="scenario1" value="ignore" class="mr-2">
+                        <label for="s1o3">Ignore their anger and tell them the law requires them to be quiet.</label>
                     </div>
-                    <button id="generateAiScenarioButton" class="mt-3 sm:mt-0 px-4 py-2 bg-teal-500 text-white text-sm font-medium rounded-lg hover:bg-teal-600 transition-colors shadow hover:shadow-md focus-visible:ring-offset-slate-50 self-start sm:self-center flex items-center"><span class="mr-2 text-base">✨</span>Generate New AI Scenario</button>
-                </div>
-                <div id="aiGeneratedScenarioContainer" class="ai-analysis-container my-6 hidden p-5 border-teal-300 bg-teal-50">
-                    <h4 class="font-semibold text-md text-teal-700 mb-2">AI Generated Scenario:</h4>
-                    <div id="aiGeneratedScenarioContent" class="text-sm text-teal-800 leading-relaxed prose prose-sm max-w-none"></div>
-                    <div id="aiScenarioLoading" class="loading-spinner-dark hidden"></div>
-                </div>
-                <div id="interactiveScenariosContainer" class="space-y-8"></div>
+                    <button type="submit" class="btn btn-secondary mt-2 bg-gray-600 text-white py-2 px-3 rounded-md hover:bg-gray-700">Submit Answer</button>
+                </form>
+                <div class="feedback mt-3 p-3 rounded hidden"></div>
             </div>
-            <div class="bg-white p-5 sm:p-6 lg:p-8 rounded-xl shadow-2xl">
-                <h3 class="text-xl sm:text-2xl font-semibold text-slate-700 mb-4">Quick Field Guides & Checklists</h3>
-                <div id="fieldGuidesContainer" class="space-y-4"></div>
+
+            <div class="card scenario bg-gray-50 border border-gray-200 rounded-md p-4">
+                <h3 class="text-lg font-medium mb-2">Scenario 2: Shoplifting Suspect</h3>
+                <p class="mb-2">You are called to a retail store where loss prevention has detained a teenager for shoplifting an item worth $20. The teenager is crying and says they made a stupid mistake and can\'t afford to pay.</p>
+                <p class="mb-2"><strong>How do you proceed according to policy and ethical guidelines?</strong></p>
+                <form data-scenario-id="shopliftingSuspect">
+                    <div class="mb-2">
+                        <input type="radio" id="s2o1" name="scenario2" value="arrest" class="mr-2">
+                        <label for="s2o1">Arrest and transport to juvenile detention immediately, per zero-tolerance policy.</label>
+                    </div>
+                    <div class="mb-2">
+                        <input type="radio" id="s2o2" name="scenario2" value="contact_parents" class="mr-2">
+                        <label for="s2o2">Verify store policy, consider citation or warning if appropriate, contact parents/guardians, and explain the consequences.</label>
+                    </div>
+                    <div class="mb-2">
+                        <input type="radio" id="s2o3" name="scenario2" value="lecture" class="mr-2">
+                        <label for="s2o3">Give them a stern lecture and let them go, hoping they learned their lesson.</label>
+                    </div>
+                    <button type="submit" class="btn btn-secondary mt-2 bg-gray-600 text-white py-2 px-3 rounded-md hover:bg-gray-700">Submit Answer</button>
+                </form>
+                <div class="feedback mt-3 p-3 rounded hidden"></div>
             </div>
+            <!-- Add more scenarios as needed -->
         </section>
 
-        <section id="officer-wellness" class="content-section py-8 sm:py-10 lg:py-12">
-            <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold mb-6 sm:mb-8 text-blue-700">Officer Wellness & Resilience</h2>
-            <div class="bg-white p-5 sm:p-6 lg:p-8 rounded-xl shadow-2xl">
-                <p class="mb-6 text-slate-600 leading-relaxed">Prioritizing your mental and physical well-being is crucial. Explore these resources for stress management, resilience building, and support.</p>
-                <div id="wellnessResourcesContainer" class="space-y-4"></div>
-            </div>
-        </section>
-
-        <section id="resources" class="content-section py-8 sm:py-10 lg:py-12">
-            <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold mb-6 sm:mb-8 text-blue-700">Further Resources & Links</h2>
-            <div class="bg-white p-5 sm:p-6 lg:p-8 rounded-xl shadow-2xl">
-                <p class="mb-6 text-slate-600 leading-relaxed">Connect with professional organizations, find additional training, and explore further reading. For agency administrators, information about the Ethical Badge Agency Portal can be found here.</p>
-                <ul id="externalResourcesList" class="list-none space-y-4"></ul>
-                 <div class="mt-8 p-4 bg-slate-50 rounded-lg border border-slate-200">
-                    <h4 class="font-semibold text-slate-700 mb-2">For Agency Administrators:</h4>
-                    <p class="text-sm text-slate-600 mb-3">Ethical Badge offers an Agency Portal for department-wide training management, compliance tracking, and analytics. This requires a separate agency subscription and backend integration.</p>
-                    <a href="#" class="text-sm text-blue-600 hover:underline font-medium focus-visible:ring-offset-slate-50 agency-portal-link">Learn More / Request Demo (Agency Portal) &raquo;</a>
+        <section id="resources" class="content-section bg-white p-6 mb-6 rounded-lg shadow">
+            <h2 class="text-xl font-semibold text-blue-800 mb-4 border-b-2 border-blue-100 pb-2">Resources & Further Learning</h2>
+            <p class="mb-4">Continuous learning is key to professional development. Here are some resources for further information:</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="card bg-gray-50 border border-gray-200 rounded-md p-4">
+                    <h3 class="text-lg font-medium mb-2">Legal & Policy</h3>
+                    <ul class="list-disc pl-5 space-y-1">
+                        <li><a href="#" class="text-blue-600 hover:underline">State Penal Code (Link to official site)</a></li>
+                        <li><a href="#" class="text-blue-600 hover:underline">Department Policy Manual (Link to internal resource)</a></li>
+                        <li><a href="#" class="text-blue-600 hover:underline">Use of Force Guidelines (Link)</a></li>
+                        <li><a href="#" class="text-blue-600 hover:underline">Fourth Amendment Resources (ACLU, etc.)</a></li>
+                    </ul>
+                </div>
+                <div class="card bg-gray-50 border border-gray-200 rounded-md p-4">
+                    <h3 class="text-lg font-medium mb-2">Professional Development</h3>
+                    <ul class="list-disc pl-5 space-y-1">
+                        <li><a href="#" class="text-blue-600 hover:underline">IACP Ethics Toolkit (International Association of Chiefs of Police)</a></li>
+                        <li><a href="#" class="text-blue-600 hover:underline">PERF ICAT Training (Police Executive Research Forum)</a></li>
+                        <li><a href="#" class="text-blue-600 hover:underline">Verbal Judo Institute</a></li>
+                        <li><a href="#" class="text-blue-600 hover:underline">Mental Health First Aid for Law Enforcement</a></li>
+                    </ul>
                 </div>
             </div>
         </section>
+        
+        <!-- Example of a modal structure that main.js might expect for case studies or other popups -->
+        <div id="caseStudyModal" class="modal modal-inactive fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-100 p-4">
+            <div class="modal-content bg-white p-6 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+                <div class="flex justify-between items-center pb-3 border-b">
+                    <h3 id="modalTitle" class="text-xl font-semibold">Modal Title</h3>
+                    <button id="closeModalButton" class="text-gray-600 hover:text-gray-900 text-2xl">&times;</button>
+                </div>
+                <div id="modalBody" class="py-4 overflow-y-auto modal-body-scrollable">
+                    <p>Modal content goes here...</p>
+                </div>
+                <div id="modalAiAnalysisSection" class="pt-4 border-t hidden">
+                    <h4 class="text-md font-semibold mb-2 text-blue-700">AI Powered Analysis</h4>
+                    <div id="modalAiAnalysisContent" class="text-sm bg-blue-50 p-3 rounded">Loading analysis...</div>
+                    <textarea id="modalAiPrompt" class="w-full mt-2 p-2 border rounded text-sm" placeholder="Ask AI a follow-up question about this content..."></textarea>
+                    <button id="modalAskAiButton" class="btn btn-secondary mt-2 text-sm">Ask AI</button>
+                </div>
+            </div>
+        </div>
+
     </main>
 
-    <div id="caseStudyModal" class="modal fixed inset-0 bg-slate-900 bg-opacity-75 flex items-center justify-center p-4 modal-inactive z-[100]" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-        <div class="bg-white p-6 sm:p-8 rounded-xl shadow-2xl max-w-2xl lg:max-w-3xl w-full max-h-[90vh] flex flex-col">
-            <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-300">
-                <h3 id="modalTitle" class="text-xl sm:text-2xl font-semibold text-blue-700">Case Study Title</h3>
-                <button id="closeModalButton" class="text-slate-400 hover:text-slate-600 text-3xl font-light leading-none focus-visible:ring-offset-white" aria-label="Close modal">&times;</button>
-            </div>
-            <div id="modalBody" class="text-slate-600 text-sm sm:text-base overflow-y-auto modal-body-scrollable flex-grow pr-2"></div>
-            <div id="modalAiAnalysisSection" class="mt-4 pt-4 border-t border-slate-200">
-                 <button id="analyzeCaseStudyButton" class="w-full sm:w-auto px-5 py-2 bg-sky-500 text-white text-sm font-medium rounded-lg hover:bg-sky-600 transition-colors shadow hover:shadow-md focus-visible:ring-offset-white flex items-center justify-center">
-                    <span class="mr-2">✨</span>Analyze with AI
-                    <span id="caseStudyAiButtonSpinner" class="loading-spinner ml-2 hidden"></span>
-                 </button>
-                 <div id="caseStudyAiAnalysisContainer" class="ai-analysis-container mt-3 hidden">
-                    <h5 class="font-semibold text-sm text-slate-700 mb-1">AI Generated Analysis:</h5>
-                    <div id="caseStudyAiAnalysisContent" class="text-xs text-slate-600 leading-relaxed prose prose-xs max-w-none"></div>
-                    <div id="caseStudyAiLoading" class="loading-spinner-dark hidden"></div>
-                </div>
-            </div>
-            <div class="mt-6 pt-4 border-t border-slate-200 text-right space-x-3">
-                <button id="closeModalButtonFooter" class="px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors shadow hover:shadow-md focus-visible:ring-offset-white">Close</button>
-            </div>
-        </div>
-    </div>
-
-    <footer class="bg-blue-800 text-blue-100 text-center p-8 mt-12">
-        <div class="mb-4">
-            <a href="#" class="text-blue-300 hover:text-white hover:underline text-sm agency-portal-link">Agency Administration Portal</a>
-        </div>
-        <p class="text-sm">&copy; <span id="currentYear"></span> Ethical Badge - Texas LEO Professional Development Hub.</p>
-        <p class="text-xs mt-2 text-blue-300">Disclaimer: This tool is for informational and educational purposes only. Always refer to official TCOLE guidelines and your agency's policies.</p>
+    <footer class="text-center p-6 bg-gray-200 text-gray-600 text-sm mt-8">
+        <p>&copy; <span id="currentYear"></span> Law Enforcement Training Division. For training purposes only.</p>
+        <p>Disclaimer: This material is for educational use and does not constitute legal advice. Always refer to current laws, agency policies, and consult with legal counsel as needed.</p>
     </footer>
-
-    <script type="module" src="src/js/main.js"></script>
 </body>
 </html>

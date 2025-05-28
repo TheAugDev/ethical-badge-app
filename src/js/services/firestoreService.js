@@ -4,7 +4,10 @@ import {
   getDoc,
   Timestamp,
 } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
-import { appId } from '../config/firebaseConfig.js'; // Assuming appId is exported from firebaseConfig
+
+// Remove appId import and use a static or env value for Firestore path
+// import { appId } from '../config/firebaseConfig.js';
+const APP_ID = import.meta.env.VITE_FIREBASE_APP_ID || '1:73453178206:web:c5e32acdf519899cb493cf';
 
 // Local state for officer data, mirroring what would be in Firestore
 let officerDataStore = {
@@ -30,7 +33,7 @@ export async function loadUserDataFromFirestore(db, userId) {
     console.warn('loadUserDataFromFirestore: No userId provided.');
     return;
   }
-  const userDocRef = doc(db, `artifacts/${appId}/users/${userId}/profile`, 'data');
+  const userDocRef = doc(db, `artifacts/${APP_ID}/users/${userId}/profile`, 'data');
   try {
     const docSnap = await getDoc(userDocRef);
     if (docSnap.exists()) {
@@ -70,7 +73,7 @@ export async function saveUserDataToFirestore(db, userId, dataToSave) {
     console.warn('saveUserDataToFirestore: No userId provided.');
     return;
   }
-  const userDocRef = doc(db, `artifacts/${appId}/users/${userId}/profile`, 'data');
+  const userDocRef = doc(db, `artifacts/${APP_ID}/users/${userId}/profile`, 'data');
   try {
     await setDoc(userDocRef, dataToSave, { merge: true });
     console.log('User data saved to Firestore for UID:', userId);

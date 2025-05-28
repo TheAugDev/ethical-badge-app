@@ -1,12 +1,11 @@
 // src/js/config/firebaseConfig.js
 
 // Firebase SDK imports (npm version)
-// These allow direct use of Firebase functions after initialization.
+// These imports only work with a build tool like Vite, Webpack, or when served from a local server.
 import { initializeApp } from 'firebase/app';
 import { getAnalytics } from 'firebase/analytics';
-// Optionally import other Firebase SDKs as needed
-// import { getAuth } from 'firebase/auth';
-// import { getFirestore } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
 
 // --- Firebase Configuration & Initialization ---
 // Use environment variables for Firebase config
@@ -23,6 +22,6 @@ export const firebaseConfig = {
 // Initialize Firebase
 export const app = initializeApp(firebaseConfig);
 export const analytics = getAnalytics(app);
-// Optionally export auth and db if needed
-// export const auth = getAuth(app);
-// export const db = getFirestore(app);
+// Export Firebase Auth and Firestore instances for use throughout the app
+export const auth = getAuth(app);
+export const db = getFirestore(app);

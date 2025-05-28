@@ -1,11 +1,16 @@
 {
   "devDependencies": {
     "eslint": "^9.27.0",
+    "gh-pages": "^6.3.0",
     "playwright": "^1.52.0",
     "prettier": "^3.5.3",
     "vitest": "^3.1.4"
   },
   "dependencies": {
     "firebase": "^11.8.1"
+  },
+  "scripts": {
+    "predeploy": "npx vite build",
+    "deploy": "gh-pages -d dist"
   }
 }

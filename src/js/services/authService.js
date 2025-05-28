@@ -1,3 +1,4 @@
+// Use npm Firebase SDK imports for Vite/production build only
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -5,8 +6,8 @@ import {
   signOut,
   updateProfile,
   signInWithCustomToken,
-} from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
-import { Timestamp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+} from 'firebase/auth';
+import { Timestamp } from 'firebase/firestore';
 import {
   saveUserDataToFirestore,
   loadUserDataFromFirestore,

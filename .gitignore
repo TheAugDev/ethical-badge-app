@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+dist/
+build/
+
+# Environment variables
+.env
+*.env
+env.js 
+
+# IDE/Editor specific
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.bak

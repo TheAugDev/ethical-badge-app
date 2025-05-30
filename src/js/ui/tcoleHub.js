@@ -1,9 +1,8 @@
 // src/js/ui/tcoleHub.js
 import { escapeHtml } from './uiUtils.js';
 import { getOfficerData, updateLocalOfficerData } from '../services/firestoreService.js'; // Assuming these exist to manage local state
-import { Timestamp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js'; // For dateLogged
 
-let localTcoleMandatesData = []; // To keep track of static mandate data + completion status
+let localTcoleMandatesData = []; // Declare here, initialize in the function
 
 export function initializeTcoleHub(
   officerDataState,
@@ -11,14 +10,28 @@ export function initializeTcoleHub(
   saveTrainingLogFn,
   escapeHtmlFn
 ) {
+  console.log('[tcoleHub] initializeTcoleHub entered. staticTcoleMandates:', staticTcoleMandates); // Log 1
+
+  try {
+    // Initialize localTcoleMandatesData here, inside the function
+    if (staticTcoleMandates && Array.isArray(staticTcoleMandates)) {
+      localTcoleMandatesData = JSON.parse(JSON.stringify(staticTcoleMandates));
+    } else {
+      console.warn('[tcoleHub] initializeTcoleHub: staticTcoleMandates is not a valid array. Defaulting to empty array. Received:', staticTcoleMandates);
+      localTcoleMandatesData = [];
+    }
+    console.log('[tcoleHub] initializeTcoleHub: localTcoleMandatesData after assignment:', JSON.parse(JSON.stringify(localTcoleMandatesData))); // Log 2 - stringify/parse for clean logging of array content
+  } catch (e) {
+    console.error('[tcoleHub] initializeTcoleHub: Error during localTcoleMandatesData assignment:', e);
+    localTcoleMandatesData = []; // Fallback to empty array on error
+    console.log('[tcoleHub] initializeTcoleHub: localTcoleMandatesData after CATCHING error:', localTcoleMandatesData);
+  }
+
   const tcoleHubUnitDatesEl = document.getElementById('tcoleHubUnitDates');
   const tcoleHubRequiredHoursEl = document.getElementById('tcoleHubRequiredHours');
   const logTcoleTrainingButton = document.getElementById('logTcoleTrainingButton');
   const tcoleCourseNameInput = document.getElementById('tcoleCourseName');
   const tcoleCourseHoursInput = document.getElementById('tcoleCourseHours');
-
-  // Initialize localTcoleMandatesData with a copy of static data to allow status changes
-  localTcoleMandatesData = JSON.parse(JSON.stringify(staticTcoleMandates));
 
   if (tcoleHubUnitDatesEl)
     tcoleHubUnitDatesEl.textContent = `${escapeHtmlFn(officerDataState.currentUnit.start)} - ${escapeHtmlFn(officerDataState.currentUnit.end)}`;
@@ -26,7 +39,8 @@ export function initializeTcoleHub(
     tcoleHubRequiredHoursEl.textContent = officerDataState.currentUnit.requiredHours;
 
   updateTcoleProgressDisplay(officerDataState); // Initial display based on current officerData
-  renderTcoleMandates(officerDataState, saveTrainingLogFn, escapeHtmlFn);
+  // Pass the mandates data directly to renderTcoleMandates
+  renderTcoleMandates(officerDataState, saveTrainingLogFn, escapeHtmlFn, localTcoleMandatesData);
 
   if (logTcoleTrainingButton && tcoleCourseNameInput && tcoleCourseHoursInput) {
     logTcoleTrainingButton.addEventListener('click', async () => {
@@ -55,7 +69,8 @@ export function initializeTcoleHub(
 
         // Re-render UI based on updated local state
         updateTcoleProgressDisplay(getOfficerData()); // Pass the latest state
-        renderTcoleMandates(getOfficerData(), saveTrainingLogFn, escapeHtmlFn); // Re-render mandates
+        // Pass the module-scoped localTcoleMandatesData here
+        renderTcoleMandates(getOfficerData(), saveTrainingLogFn, escapeHtmlFn, localTcoleMandatesData);
 
         tcoleCourseNameInput.value = '';
         tcoleCourseHoursInput.value = '';
@@ -128,12 +143,25 @@ export function updateTcoleProgressDisplay(officerDataState) {
   }
 }
 
-export function renderTcoleMandates(officerDataState, saveTrainingLogFn, escapeHtmlFn) {
+// Modify renderTcoleMandates to accept mandatesData as a parameter
+export function renderTcoleMandates(officerDataState, saveTrainingLogFn, escapeHtmlFn, mandatesToRender) {
+  console.log('[tcoleHub] renderTcoleMandates entered. localTcoleMandatesData at start:', JSON.parse(JSON.stringify(localTcoleMandatesData))); // Log 3 - stringify/parse for clean logging
+
   const tcoleMandatesContainer = document.getElementById('tcoleMandatesList');
-  if (!tcoleMandatesContainer) return;
+  if (!tcoleMandatesContainer) {
+    console.warn('[tcoleHub] renderTcoleMandates: tcoleMandatesContainer not found. Skipping render.');
+    return;
+  }
+
+  // Ensure mandatesToRender is an array before using forEach
+  if (!Array.isArray(mandatesToRender)) {
+    console.error('renderTcoleMandates: mandatesToRender is not an array!', mandatesToRender);
+    tcoleMandatesContainer.innerHTML = '<p class="text-red-500">Error: Could not load TCOLE mandates data.</p>';
+    return;
+  }
 
   tcoleMandatesContainer.innerHTML = '';
-  localTcoleMandatesData.forEach((mandate) => {
+  mandatesToRender.forEach((mandate) => { // Use the passed parameter
     const isCompleted = officerDataState.manuallyLoggedTrainings.some(
       (log) => log.id === mandate.id
     );
@@ -154,10 +182,12 @@ export function renderTcoleMandates(officerDataState, saveTrainingLogFn, escapeH
             </div>`;
     tcoleMandatesContainer.innerHTML += item;
   });
-  addMarkCompleteListeners(saveTrainingLogFn, escapeHtmlFn); // Pass save function
+  // Pass saveTrainingLogFn and escapeHtmlFn, and also localTcoleMandatesData for consistency if addMarkCompleteListeners internally calls renderTcoleMandates again
+  addMarkCompleteListeners(saveTrainingLogFn, escapeHtmlFn, localTcoleMandatesData);
 }
 
-function addMarkCompleteListeners(saveTrainingLogFn, escapeHtmlFn) {
+// Modify addMarkCompleteListeners to accept and pass mandatesData
+function addMarkCompleteListeners(saveTrainingLogFn, escapeHtmlFn, mandatesData) {
   document.querySelectorAll('.mark-tcole-complete-btn').forEach((button) => {
     if (button.dataset.listenerAttached === 'true') return;
     button.dataset.listenerAttached = 'true';
@@ -188,7 +218,8 @@ function addMarkCompleteListeners(saveTrainingLogFn, escapeHtmlFn) {
 
         // Re-render UI based on updated local state
         updateTcoleProgressDisplay(getOfficerData());
-        renderTcoleMandates(getOfficerData(), saveTrainingLogFn, escapeHtmlFn);
+        // Pass mandatesData (which is localTcoleMandatesData from the caller)
+        renderTcoleMandates(getOfficerData(), saveTrainingLogFn, escapeHtmlFn, mandatesData);
       }
     });
   });

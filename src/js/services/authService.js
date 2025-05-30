@@ -14,7 +14,7 @@ import {
   getOfficerData,
   updateLocalOfficerData,
 } from './firestoreService.js';
-import { initializeOfficerDashboard } from '../ui/dashboard.js';
+import { initializeDashboard } from '../ui/dashboard.js';
 import { initializeTcoleHub } from '../ui/tcoleHub.js';
 import { updateActiveLink } from '../ui/navigation.js';
 
@@ -28,7 +28,6 @@ export function initializeAuth(authInstance, dbInstance, onLogin, onLogout, onAp
   const loginOverlay = document.getElementById('loginOverlay');
   const headerEl = document.querySelector('header');
   const mainContentEl = document.querySelector('main');
-  const loginNameInput = document.getElementById('loginName');
   const loginEmailInput = document.getElementById('loginEmail');
   const loginPasswordInput = document.getElementById('loginPassword');
   const authMessageEl = document.getElementById('authMessage');
@@ -37,6 +36,7 @@ export function initializeAuth(authInstance, dbInstance, onLogin, onLogout, onAp
   const logoutButton = document.getElementById('logoutButton');
   const mobileLogoutButton = document.getElementById('mobileLogoutButton');
   const headerOfficerNameEl = document.getElementById('headerOfficerName');
+  const registerNameInput = document.getElementById('registerName'); // Use this for registration only
 
   onAuthStateChanged(authInstance, async (user) => {
     if (user) {
@@ -44,12 +44,17 @@ export function initializeAuth(authInstance, dbInstance, onLogin, onLogout, onAp
       const localOfficerData = getOfficerData();
       localOfficerData.uid = user.uid;
       localOfficerData.email = user.email;
+      // Use displayName or fallback to registerNameInput value or 'Officer'
       localOfficerData.name =
         user.displayName ||
-        (loginNameInput && loginNameInput.value.trim() ? loginNameInput.value.trim() : 'Officer');
+        (registerNameInput && !registerNameInput.classList.contains('hidden') && registerNameInput.value.trim() ? registerNameInput.value.trim() : 'Officer');
       updateLocalOfficerData(localOfficerData); // Update the shared state
 
-      if (loginOverlay) loginOverlay.classList.add('hidden');
+      // FIX: Hide login overlay and show main content after login
+      if (loginOverlay) {
+        loginOverlay.style.display = 'none';
+        loginOverlay.classList.add('hidden');
+      }
       if (headerEl) headerEl.classList.remove('hidden');
       if (mainContentEl) mainContentEl.classList.remove('hidden');
       if (headerOfficerNameEl) {
@@ -70,16 +75,18 @@ export function initializeAuth(authInstance, dbInstance, onLogin, onLogout, onAp
       localOfficerData.manuallyLoggedTrainings = [];
       updateLocalOfficerData(localOfficerData);
 
-      if (loginOverlay) loginOverlay.classList.remove('hidden'); // Show login overlay
+      if (loginOverlay) {
+        loginOverlay.style.display = 'flex';
+        loginOverlay.classList.remove('hidden');
+      } // Show login overlay
       if (headerEl) headerEl.classList.add('hidden');
       if (mainContentEl) mainContentEl.classList.add('hidden');
       if (headerOfficerNameEl) headerOfficerNameEl.classList.add('hidden');
       if (authMessageEl) authMessageEl.textContent = '';
       if (loginEmailInput) loginEmailInput.value = '';
       if (loginPasswordInput) loginPasswordInput.value = '';
-      if (loginNameInput) loginNameInput.value = '';
+      if (registerNameInput) registerNameInput.value = ''; // Changed from loginNameInput
       console.log('User logged out.');
-      if (loginOverlay) loginOverlay.style.display = 'flex'; // Ensure login is visible on logout
     }
   });
 
@@ -103,9 +110,19 @@ export function initializeAuth(authInstance, dbInstance, onLogin, onLogout, onAp
 
   if (registerButton) {
     registerButton.addEventListener('click', async () => {
+      // Show name input if hidden, and require it for registration
+      if (registerNameInput.classList.contains('hidden')) {
+        registerNameInput.classList.remove('hidden');
+        registerNameInput.focus();
+        if (authMessageEl) {
+          authMessageEl.textContent = 'Please enter your full name to register.';
+          authMessageEl.className = 'form-message';
+        }
+        return;
+      }
       const email = loginEmailInput.value;
       const password = loginPasswordInput.value;
-      const name = loginNameInput.value.trim();
+      const name = registerNameInput.value.trim();
       if (!email || !password || !name) {
         if (authMessageEl) {
           authMessageEl.textContent = 'Please fill in all fields.';
@@ -152,6 +169,10 @@ export function initializeAuth(authInstance, dbInstance, onLogin, onLogout, onAp
 
   if (loginButton) {
     loginButton.addEventListener('click', async () => {
+      // Hide name input on login
+      if (!registerNameInput.classList.contains('hidden')) {
+        registerNameInput.classList.add('hidden');
+      }
       const email = loginEmailInput.value;
       const password = loginPasswordInput.value;
       if (!email || !password) {
@@ -182,4 +203,9 @@ export function initializeAuth(authInstance, dbInstance, onLogin, onLogout, onAp
   }
   if (logoutButton) logoutButton.addEventListener('click', performLogout);
   if (mobileLogoutButton) mobileLogoutButton.addEventListener('click', performLogout);
+
+  // Hide name input on page load (default: login mode)
+  if (registerNameInput && !registerNameInput.classList.contains('hidden')) {
+    registerNameInput.classList.add('hidden');
+  }
 }

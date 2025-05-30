@@ -1,9 +1,10 @@
+// Use npm Firebase SDK imports for Vite/production build only
 import {
   doc,
   setDoc,
   getDoc,
   Timestamp,
-} from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+} from 'firebase/firestore';
 
 // Remove appId import and use a static or env value for Firestore path
 // import { appId } from '../config/firebaseConfig.js';
